@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sincronizar golpes — PokPok Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="visual.css">
+    <link rel="stylesheet" href="telas.css">
+    <link rel="stylesheet" href="tema.css">
+</head>
+
+<body>
+    <header class="topo"><img src="Poké_Ball_icon.svg.webp" alt=""><h1>PokPok Battle</h1></header>
+    <h3 class="titulo-pagina">Sincronizar golpes (coleção "golpes", versão 2)</h3>
+    <nav id="nav"></nav>
+    <section>
+        <p>Busca <b>todos</b> os golpes na PokéAPI e grava (ou atualiza) cada um na coleção <code>golpes</code> já com os efeitos que o motor de batalha entende. Golpes que o motor ainda não faz direito ficam com <code>suportado: false</code> e o motivo, e não aparecem para escolha. Os campos que você já tinha (<code>nomePt</code>, <code>descricao</code>, <code>secao</code>...) são mantidos. São cerca de 900 consultas; leva alguns minutos e pode ser repetido quando quiser.</p>
+        <p><button id="go" class="primario">Sincronizar todos os golpes</button></p>
+        <pre id="log"></pre>
+    </section>
+    <script type="module" src="sincronizar.js"></script>
+</body>
+
+</html>

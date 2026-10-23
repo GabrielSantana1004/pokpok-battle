@@ -1,0 +1,774 @@
+/* ==========================================================
+   PokPok Battle — sala.css
+   Estilos só da página sala.html (carregar DEPOIS de style.css
+   e visual.css). Tudo fica sob body.pagina-sala, então não
+   afeta as outras páginas.
+   ========================================================== */
+
+.pagina-sala {
+    max-width: 880px;
+    padding: 16px;
+    background:
+        radial-gradient(circle at 100% 0, rgba(229, 57, 53, .07), transparent 40%),
+        radial-gradient(circle at 0 100%, rgba(30, 79, 216, .07), transparent 40%),
+        Canvas;
+    background-attachment: fixed;
+}
+
+
+/* ---------- Cabeçalho ---------- */
+
+.pagina-sala>div[style*="flex"] {
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    border-bottom: 3px solid var(--ink);
+}
+
+.pagina-sala h1 {
+    font-weight: 800;
+}
+
+
+/* ---------- Mensagem de erro/aviso da sala ---------- */
+
+#msg-sala:not(:empty) {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    background: #ffecec;
+    color: #9b1c1c;
+    border-left: 4px solid var(--red);
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
+#msg-sala:empty {
+    display: none;
+}
+
+
+/* ---------- Cartão principal ---------- */
+
+#conteudo {
+    position: relative;
+    margin: 16px 0;
+    padding: 20px;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-top: 10px solid var(--red);
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+}
+
+#conteudo>h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    font-size: 1.6rem;
+    letter-spacing: .02em;
+}
+
+#conteudo>h2::before {
+    content: "";
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    background: linear-gradient(var(--red) 0 45%, var(--ink) 45% 55%, #fff 55% 100%);
+}
+
+#conteudo>h3 {
+    margin: 22px 0 10px;
+    padding-bottom: 6px;
+    font-size: 1.1rem;
+    border-bottom: 2px solid var(--line);
+}
+
+#conteudo>p {
+    margin: 8px 0;
+}
+
+
+/* "Você é Jogador 1. [Sair da sala]" */
+
+#conteudo>p:first-of-type {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+#conteudo>p:first-of-type button {
+    margin-left: auto;
+}
+
+
+/* "Jogador 1: escolhendo equipe · Jogador 2: aguardando entrar" */
+
+#conteudo>h2+p+p {
+    padding: 10px 14px;
+    background: var(--blue-soft);
+    border-left: 4px solid var(--blue);
+    border-radius: var(--radius);
+    font-size: .95rem;
+    color: #22325f;
+}
+
+
+/* ---------- Botões ---------- */
+
+#conteudo button {
+    margin: 0;
+    padding: 6px 14px;
+    font-size: .95rem;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .15);
+}
+
+#conteudo button:hover {
+    transform: translateY(-1px);
+}
+
+#conteudo button:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+button[onclick="sairSala()"] {
+    border-color: var(--red);
+    color: var(--red-dark);
+    padding: 4px 12px;
+    font-size: .85rem;
+}
+
+button[onclick="sairSala()"]:hover {
+    background: #ffe5e5;
+}
+
+button[onclick="confirmar()"],
+button[onclick="addEq()"] {
+    background: var(--blue);
+    border-color: #123aa8;
+    color: #fff;
+}
+
+button[onclick="confirmar()"]:hover,
+button[onclick="addEq()"]:hover {
+    background: #2a60ee;
+}
+
+button[onclick="confirmar()"] {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    font-size: 1.05rem;
+    background: var(--red);
+    border-color: var(--red-dark);
+}
+
+button[onclick="confirmar()"]:hover {
+    background: #f04b47;
+}
+
+
+/* ---------- Montagem da equipe ---------- */
+
+
+/* linha "Do catálogo: [select] [Adicionar]" */
+
+#conteudo>div:not([class]):has(#sel) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--panel);
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+#sel {
+    flex: 1 1 200px;
+    min-width: 0;
+    margin: 0;
+    padding: 6px 10px;
+}
+
+
+/* linhas da equipe: "1. Blastoise (primeiro a entrar)  ↑ ↓ ✕" */
+
+#conteudo>div:not([class]):not(:has(#sel)) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0;
+    padding: 8px 12px;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    font-weight: 600;
+    transition: border-color var(--ease), box-shadow var(--ease);
+}
+
+#conteudo>div:not([class]):not(:has(#sel)):hover {
+    border-color: var(--blue);
+    box-shadow: 0 2px 8px rgba(30, 79, 216, .15);
+}
+
+#conteudo>div:not([class]):not(:has(#sel))>button:first-of-type {
+    margin-left: auto;
+}
+
+button[onclick^="mvEq"],
+button[onclick^="rmEq"] {
+    min-width: 36px;
+    padding: 4px 8px;
+    line-height: 1.2;
+}
+
+button[onclick^="rmEq"] {
+    border-color: var(--red);
+    color: var(--red-dark);
+}
+
+button[onclick^="rmEq"]:hover {
+    background: #ffe5e5;
+}
+
+
+/* ---------- Registro ---------- */
+
+.pagina-sala .log {
+    max-height: 240px;
+    padding: 8px;
+    background: #1f2430;
+    color: #e6e9f2;
+    border-radius: 10px;
+    font-size: .88rem;
+    line-height: 1.4;
+}
+
+.pagina-sala .log div {
+    padding: 4px 8px;
+    border-radius: 6px;
+    opacity: .75;
+}
+
+.pagina-sala .log div:first-child {
+    background: rgba(255, 255, 255, .1);
+    opacity: 1;
+    font-weight: 600;
+}
+
+.pagina-sala .log div+div {
+    border-top: 1px solid rgba(255, 255, 255, .06);
+}
+
+
+/* ---------- Catálogo (details) ---------- */
+
+.pagina-sala>details {
+    margin: 16px 0;
+}
+
+.pagina-sala>details>summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #fff;
+    border: 3px solid var(--ink);
+    border-radius: var(--radius);
+    font-weight: 700;
+    cursor: pointer;
+    list-style-position: inside;
+    transition: background-color var(--ease), color var(--ease);
+}
+
+.pagina-sala>details>summary:hover {
+    background: var(--ink);
+    color: #fff;
+}
+
+.pagina-sala>details[open]>summary {
+    margin-bottom: 8px;
+}
+
+.pagina-sala>details section {
+    border-width: 2px;
+    box-shadow: none;
+    background: #fff;
+}
+
+.pagina-sala>details .filtros {
+    background: var(--panel);
+}
+
+#contagem {
+    margin-left: auto;
+    font-size: .85rem;
+    color: #555;
+}
+
+.pagina-sala .card {
+    transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+}
+
+.pagina-sala .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--blue);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, .12);
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 640px) {
+    .pagina-sala {
+        padding: 10px;
+    }
+    #conteudo {
+        padding: 14px;
+    }
+    #conteudo>h2 {
+        font-size: 1.3rem;
+    }
+    #conteudo>p:first-of-type button {
+        margin-left: 0;
+    }
+}
+
+/* ==========================================================
+   TELA DE BATALHA (body.em-batalha)
+   Tudo cabe em uma tela só, sem rolar:
+   cabeçalho · sala · equipe adversária · vida adversária ·
+   campo · sua vida · caixa de ações
+   ========================================================== */
+
+.pagina-sala.em-batalha {
+    max-width: 520px;
+    height: 100vh;
+    height: 100dvh;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.em-batalha>div[style*="flex"] {
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--ink);
+}
+
+.em-batalha h1 {
+    font-size: 1.3rem;
+}
+
+.em-batalha>div[style*="flex"] img {
+    width: 38px !important;
+    height: 38px !important;
+}
+
+.em-batalha>details {
+    display: none;
+}
+
+.em-batalha #msg-sala:not(:empty) {
+    flex: none;
+    margin: 6px 0 0;
+}
+
+.pagina-sala.em-batalha #conteudo {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin: 6px 0 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+
+/* botão do menu hambúrguer (fica no cabeçalho) */
+
+.btn-menu {
+    display: none;
+    margin: 0 0 0 auto;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    line-height: 1;
+    border-color: var(--ink);
+    background: #fff;
+}
+
+.em-batalha .btn-menu {
+    display: flex;
+}
+
+.batalha {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sala-id {
+    flex: none;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.sala-id .papel {
+    margin-left: 6px;
+    padding: 1px 10px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    vertical-align: 1px;
+}
+
+
+/* equipe do adversário (miniaturas; o ativo tem uma borda a mais) */
+
+.eq-adv {
+    flex: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 6px 8px;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 10px;
+}
+
+.eq-adv .mini {
+    width: min(44px, 13vw);
+    height: min(44px, 13vw);
+    margin: 0;
+    border: 2px solid var(--line);
+}
+
+.eq-adv .mini.ativa {
+    outline: 0;
+    border-color: var(--red);
+    box-shadow: 0 0 0 2px var(--red-glow);
+}
+
+
+/* barras de vida */
+
+.vida {
+    flex: none;
+    padding: 5px 10px 7px;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 10px;
+}
+
+.vida-topo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.vida-topo b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vida .tipos {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 4px;
+}
+
+.vida .tipo {
+    padding: 0 8px;
+    font-size: .68rem;
+}
+
+.vida .estado {
+    padding: 0 8px;
+    background: #c8f7c5;
+    color: var(--green-dark);
+    border-radius: 999px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.vida .hp-num {
+    margin-left: auto;
+    font-size: .85rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.vida progress {
+    height: 12px;
+    margin: 4px 0 0;
+    border-width: 2px;
+}
+
+
+/* campo: adversário em cima à direita, o seu Pokémon embaixo à esquerda */
+
+.campo {
+    flex: 1;
+    min-height: 90px;
+    position: relative;
+    container-type: size;
+    overflow: hidden;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    background: linear-gradient(#d4ebff 0 56%, #c4e8a4 56% 100%);
+}
+
+.spot {
+    position: absolute;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.spot::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: 0;
+    height: 14%;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .18);
+}
+
+.spot.adv {
+    top: 4cqh;
+    right: 6cqw;
+    width: min(42cqw, 52cqh);
+    height: min(42cqw, 52cqh);
+}
+
+.spot.eu {
+    bottom: 3cqh;
+    left: 6cqw;
+    width: min(48cqw, 60cqh);
+    height: min(48cqw, 60cqh);
+}
+
+.spot .sprite {
+    position: relative;
+    margin: 0 0 7%;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+
+/* caixa de baixo: golpes / texto da ação */
+
+.acao {
+    flex: none;
+    min-height: 112px;
+    max-height: 38dvh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background: #fff;
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+}
+
+.acao[data-quem="eu"] {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.acao[data-quem="adv"] {
+    border-color: var(--red);
+    background: #fff0ef;
+}
+
+.acao p {
+    margin: 0;
+}
+
+.acao .texto {
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 600;
+    animation: aparecer .25s ease;
+}
+
+.acao .dica {
+    font-weight: 600;
+    text-align: center;
+}
+
+.acao .ultima {
+    font-size: .8rem;
+    color: #555;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.acao>button {
+    align-self: center;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+}
+
+.acao .golpes-btn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.acao .golpes-btn button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    min-width: 0;
+    padding: 8px;
+    text-align: left;
+    font-size: .9rem;
+    overflow: hidden;
+}
+
+.acao .golpes-btn button span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+}
+
+.acao .golpes-btn .tipo {
+    flex: none;
+    padding: 0 8px;
+    font-size: .68rem;
+}
+
+.acao .trocas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+
+/* menu hambúrguer (gaveta à direita) */
+
+.menu-fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(0, 0, 0, .45);
+}
+
+.menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 21;
+    width: min(340px, 88vw);
+    padding: 14px;
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: -6px 0 24px rgba(0, 0, 0, .25);
+    animation: entrar .18s ease;
+}
+
+@keyframes entrar {
+    from {
+        transform: translateX(100%);
+    }
+}
+
+.menu-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.15rem;
+}
+
+.menu h3 {
+    margin: 16px 0 8px;
+    padding-bottom: 4px;
+    font-size: 1rem;
+    border-bottom: 2px solid var(--line);
+}
+
+.menu .dica {
+    margin: 6px 0;
+    font-size: .85rem;
+    color: #555;
+}
+
+.menu .troca-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 6px 10px;
+    text-align: left;
+}
+
+.menu .troca-item .mini {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+}
+
+.menu .troca-item .hp-num {
+    margin-left: auto;
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.menu .sair {
+    width: 100%;
+    margin-top: 18px;
+    padding: 10px;
+}
+
+@media (max-width: 380px) {
+    .acao .golpes-btn,
+    .acao .trocas {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Clima, terreno e lados do campo */
+.campo-info { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 4px 0; font-size: .8rem; }
+.campo-info .lado { font-weight: 700; margin-left: 6px; }

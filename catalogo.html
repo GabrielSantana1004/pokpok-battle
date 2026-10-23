@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Catálogo — PokPok Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="visual.css">
+    <link rel="stylesheet" href="tema.css">
+</head>
+
+<body>
+    <header class="topo"><img src="Poké_Ball_icon.svg.webp" alt=""><h1>PokPok Battle</h1></header>
+    <h3 class="titulo-pagina">Catálogo</h3>
+    <nav id="nav"></nav>
+    <p id="erro"></p>
+    <div class="abas" role="tablist">
+        <button type="button" id="aba-pokemon" class="aba ativa" role="tab" aria-selected="true">Pokémon</button>
+        <button type="button" id="aba-golpes" class="aba" role="tab" aria-selected="false">Golpes</button>
+    </div>
+    <section class="filtros">
+        <input id="busca" type="search" placeholder="Buscar por nome">
+        <select id="filtro"><option value="">Todos os tipos</option></select>
+        <span id="contagem"></span>
+    </section>
+    <section>
+        <div id="lista" class="grade">Carregando...</div>
+    </section>
+    <script type="module" src="catalogo.js"></script>
+</body>
+
+</html>

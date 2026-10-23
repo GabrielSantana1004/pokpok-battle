@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Atualizar golpes — PokPok Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="visual.css">
+    <link rel="stylesheet" href="telas.css">
+    <link rel="stylesheet" href="tema.css">
+</head>
+
+<body>
+    <header class="topo"><img src="Poké_Ball_icon.svg.webp" alt=""><h1>PokPok Battle</h1></header>
+    <h2>Atualizar golpes</h2>
+    <nav id="nav"></nav>
+    <section>
+        <p>Busca na PokéAPI o <b>poder</b>, a <b>precisão</b> e a <b>prioridade</b> de todos os golpes dos Pokémon do catálogo e grava neles. Necessário para a batalha usar o cálculo oficial. Pode rodar de novo quando cadastrar golpes novos.</p>
+        <label><input type="checkbox" id="sobrescrever"> Refazer também os golpes que já têm dados</label>
+        <p><button id="go" class="primario">Atualizar golpes</button></p>
+        <h2>Golpes que cada Pokémon pode aprender</h2>
+        <p>Busca na PokéAPI a lista de golpes que cada Pokémon do catálogo pode aprender (união de todas as gerações, sem repetidos) e grava no Pokémon. É de onde a página <b>Meus Pokémon</b> tira as opções de golpes. Golpes de dano entram se tiverem poder; golpes de status só entram se estiverem na coleção de golpes e funcionarem na batalha. Pode demorar alguns minutos.</p>
+        <p><button id="go2" class="primario">Buscar golpes que cada Pokémon pode aprender</button></p>
+        <pre id="log"></pre>
+    </section>
+    <script type="module" src="golpes.js"></script>
+</body>
+
+</html>

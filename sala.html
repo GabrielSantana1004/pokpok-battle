@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sala — PokPok Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="visual.css">
+    <link rel="stylesheet" href="sala.css">
+    <link rel="stylesheet" href="tema.css">
+</head>
+
+<body class="pagina-sala" data-leitura="1">
+    <header class="topo"><img src="Poké_Ball_icon.svg.webp" alt=""><h1>PokPok Battle</h1>
+        <button id="btn-menu" class="btn-menu" type="button" onclick="alternarMenu()" aria-label="Abrir menu" aria-expanded="false">☰</button>
+    </header>
+    <p id="msg-sala"></p>
+    <section id="conteudo">Carregando...</section>
+    <details>
+        <summary>Catálogo</summary>
+        <p id="erro"></p>
+        <div class="abas" role="tablist">
+            <button type="button" id="aba-pokemon" class="aba ativa" role="tab" aria-selected="true">Pokémon</button>
+            <button type="button" id="aba-golpes" class="aba" role="tab" aria-selected="false">Golpes</button>
+        </div>
+        <section class="filtros">
+            <input id="busca" type="search" placeholder="Buscar por nome">
+            <select id="filtro"><option value="">Todos os tipos</option></select>
+            <span id="contagem"></span>
+        </section>
+        <section><div id="lista" class="grade">Carregando...</div></section>
+    </details>
+    <script type="module" src="sala.js"></script>
+    <script type="module" src="catalogo.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PokPok Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="visual.css">
+    <link rel="stylesheet" href="telas.css">
+    <link rel="stylesheet" href="tema.css">
+</head>
+
+<body>
+    <header class="topo"><img src="Poké_Ball_icon.svg.webp" alt=""><h1>PokPok Battle</h1></header>
+    <nav id="nav"></nav>
+    <p class="subtitulo">Batalhas Pokémon online com seus amigos, em salas com código.</p>
+    <p id="erro" class="aviso-erro"></p>
+    <div class="acoes-lobby">
+        <section>
+            <div class="icone">⚔️</div>
+            <h2>Criar sala</h2>
+            <p>Gere um código e passe para o seu adversário.</p>
+            <button id="criar" class="primario">Criar sala nova</button>
+        </section>
+        <section>
+            <div class="icone">🔑</div>
+            <h2>Entrar em uma sala</h2>
+            <p>Digite o código que seu amigo te passou.</p>
+            <div class="campo-codigo">
+                <input id="codigo" placeholder="CÓDIGO" maxlength="5" autocomplete="off">
+                <button id="buscar">Buscar</button>
+            </div>
+        </section>
+    </div>
+    <div class="acoes-lobby">
+        <section>
+            <div class="icone">🤖</div>
+            <h2>Jogar contra bot</h2>
+            <p>Enfrente um bot com 6 Pokémon aleatórios. Escolha o quanto ele é esperto.</p>
+            <label class="nivel-bot">Dificuldade
+                <select id="nivel-bot">
+                    <option value="facil">Fácil — golpes aleatórios · nível do seu mais fraco · vitória +10 XP</option>
+                    <option value="normal" selected>Normal — prefere o golpe mais forte · nível médio do seu time · +20 XP</option>
+                    <option value="dificil">Difícil — calcula dano, troca e megaevolui · nível do seu mais forte · +40 XP</option>
+                </select></label>
+            <button id="criar-bot" class="primario">Batalhar contra o bot</button>
+        </section>
+        <section>
+            <div class="icone">🗼</div>
+            <h2>Torre</h2>
+            <p>Suba andar por andar contra um Pokémon por vez (todo 10º andar é um chefe mega). Os adversários têm 5 níveis a mais que o seu Pokémon mais forte (chefes, 15). Cada vitória vale 50% mais XP que a anterior. Só XP: sem vitórias nem poções.</p>
+            <button id="criar-torre" class="primario">Subir a torre</button>
+        </section>
+    </div>
+    <div id="resultado"></div>
+    <section class="como">
+        <h2>Como funciona</h2>
+        <ol class="passos">
+            <li><b>1</b><span>Crie uma sala ou entre com o código de uma sala.</span></li>
+            <li><b>2</b><span>Escolha um dos seus times salvos (monte os times em Meus Pokémon) e confirme.</span></li>
+            <li><b>3</b><span>Quando os dois confirmarem, a batalha começa. Cada vitória rende uma Poção, e a cada 20 vitórias você ganha um Reviver.</span></li>
+        </ol>
+    </section>
+    <script type="module" src="lobby.js"></script>
+</body>
+
+</html>

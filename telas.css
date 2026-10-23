@@ -1,0 +1,61 @@
+/* Visual da tela inicial (salas) e do cadastro de Pokémon */
+.subtitulo { margin: 4px 0 14px; color: #444; }
+button.primario { background: var(--red); color: #fff; border-color: var(--red-dark); font-weight: 700; }
+button.primario:hover { filter: brightness(1.08); }
+.aviso-erro { color: var(--red-dark); font-weight: 600; }
+.aviso-erro:empty { display: none; }
+.icone { font-size: 2.2rem; line-height: 1; }
+
+/* ----- tela inicial ----- */
+.acoes-lobby { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.acoes-lobby section { margin: 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.acoes-lobby h2 { margin: 0; }
+.acoes-lobby p { margin: 0; color: #444; font-size: .95rem; }
+.campo-codigo { display: flex; gap: 6px; width: 100%; }
+.campo-codigo input { flex: 1; min-width: 0; margin: 0; text-align: center; text-transform: uppercase;
+  font-family: ui-monospace, Consolas, monospace; font-size: 1.3rem; letter-spacing: .3em; }
+.campo-codigo button { margin: 0; }
+.sala-achada { margin-top: 14px; }
+.sala-achada h2 { margin-top: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.codigo { font-family: ui-monospace, Consolas, monospace; letter-spacing: .25em; background: var(--blue-soft); color: var(--blue); padding: 0 10px; border-radius: 8px; }
+.fase { font-size: .75rem; font-weight: 600; background: var(--yellow); color: var(--yellow-dark); padding: 2px 10px; border-radius: 999px; }
+.vagas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.vaga { background: #fff; border: 2px solid var(--line); border-radius: 10px; padding: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.vaga h3 { margin: 0; }
+.vaga button { margin: 0; }
+.vaga .status { padding: 1px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600; }
+.vaga.livre .status { background: #c8f7c5; color: var(--green-dark); }
+.vaga.ocupada .status { background: #fff0b3; color: var(--yellow-dark); }
+.vaga.encerrada .status { background: #ddd; color: #555; }
+.vaga.esp .status { background: var(--blue-soft); color: var(--blue); }
+.nota { margin: 10px 0 0; font-size: .9rem; color: #444; }
+.como { margin-top: 14px; }
+.como h2 { margin-top: 0; }
+.passos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; list-style: none; margin: 0; padding: 0; }
+.passos li { display: flex; align-items: flex-start; gap: 8px; font-size: .92rem; }
+.passos b { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: #fff; display: flex; align-items: center; justify-content: center; }
+
+/* ----- cadastro ----- */
+.cad-grid { display: grid; grid-template-columns: 1fr 240px; gap: 14px; align-items: start; }
+.cad-grid section { margin: 0 0 12px; }
+.cad-grid h3 { margin-top: 0; }
+.cad-previa { position: sticky; top: 8px; }
+.cad-previa .total { margin: 0; text-align: center; font-weight: 600; }
+.cad-grid label { display: flex; flex-direction: column; gap: 2px; font-weight: 600; font-size: .9rem; }
+#f_nome, #stats input, .linha-tipos select { width: 100%; margin: 0; }
+.linha-tipos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+#stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mov { display: grid; grid-template-columns: 1fr 110px 100px; gap: 6px; margin-bottom: 6px; }
+.mov input, .mov select { width: 100%; margin: 0; }
+.msg { margin-top: 10px; padding: 8px 10px; border-radius: 8px; }
+.msg:empty { display: none; }
+.msg.ok { background: #c8f7c5; color: var(--green-dark); }
+.msg.erro { background: #ffd6d6; color: var(--red-dark); }
+#salvar { width: 100%; padding: 10px; font-size: 1.05rem; }
+
+@media (max-width: 640px) {
+  .acoes-lobby, .cad-grid, .vagas, .passos { grid-template-columns: 1fr; }
+  .cad-previa { position: static; order: -1; }
+  .mov { grid-template-columns: 1fr 1fr; }
+  .mov input { grid-column: 1 / -1; }
+}
