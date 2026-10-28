@@ -19,6 +19,9 @@ function flutuar(k, texto, classe) {
   const f = document.createElement("span"); f.className = "flutua " + classe; f.textContent = texto;
   f.addEventListener("animationend", () => f.remove()); el.appendChild(f);
 }
+function impacto(el) { // clarão rápido no ponto de impacto
+  const i = document.createElement("span"); i.className = "impacto"; i.addEventListener("animationend", () => i.remove()); el.appendChild(i);
+}
 function aviso(texto, classe) {
   const c = document.querySelector(".campo"); if (!c) return;
   const b = document.createElement("div"); b.className = "aviso-bat " + classe; b.textContent = texto;
@@ -36,7 +39,8 @@ export function aplicarFx() {
     const antes = ult[k];
     if (!passo || !antes || antes.id !== atual[k].id) continue;
     const d = p.hpAtual - antes.hp, el = spot(k);
-    if (d < 0) { flutuar(k, "−" + -d, "dano"); if (el) { el.classList.remove("tremer"); void el.offsetWidth; el.classList.add("tremer"); } }
+    if (d < 0) { flutuar(k, "−" + -d, "dano"); if (el) { el.classList.remove("tremer"); void el.offsetWidth; el.classList.add("tremer"); impacto(el); }
+      if (-d / (p.hp || 1) >= 0.3) { const c = document.querySelector(".campo"); if (c) c.classList.add("sacode"); } } // dano grande: o campo todo sacode
     else if (d > 0) flutuar(k, "+" + d, "cura");
     if (antes.hp > 0 && p.hpAtual <= 0 && el) el.classList.add("desmaiar");
   }

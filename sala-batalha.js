@@ -35,13 +35,15 @@ function barraCampo(s) {
 }
 // torre: o adversário só mostra o Pokémon em campo; no lugar das miniaturas vai o placar da subida
 const torreInfo = T => `<div class="torre-info"><span>🗼 Andar ${T.andar}/${T.total}</span><span>${T.n} ${T.n === 1 ? "derrotado" : "derrotados"}</span><span title="XP da próxima vitória">próxima: +${xpTorre(T.n + 1)} XP</span><span title="XP acumulado, recebido ao fim da subida">acumulado: ${xpTorreTotal(T.n)} XP</span></div>`;
+// bolinhas do time: uma por Pokémon (cinza = derrotado, borda amarela = em campo)
+const bolas = j => `<div class="bolas" title="Pokémon restantes: ${vivos(j).length}/${j.equipe.length}">${j.equipe.map((q, i) => `<i class="${q.hpAtual <= 0 ? "caido" : ""}${i === j.ativo ? " ativa" : ""}"></i>`).join("")}</div>`;
 function caixaVida(s, k) {
   const j = s.j[k], p = ativoDe(j);
   const est = s.fase !== "batalha" || E.reproz ? "" : precisaTrocar(j) ? "escolhendo o próximo" : s.escolhas[k] ? "✔ escolheu" : "pensando…";
   return `<div class="vida"><div class="vida-topo"><b>${esc(p.nome)}${p.shiny ? " ✨" : ""}${p.chefe ? " 👑" : ""}</b> <small class="nv-pk">Nv ${p.nivel || 50}</small><div class="tipos">${p.tipos.map(badge).join("")}</div>
     ${est ? `<span class="estado">${est}</span>` : ""}<span class="hp-num">${p.hpAtual}/${p.hp}</span></div>
     ${p.habilidade || p.item ? `<small class="hab-linha">${p.habilidade ? "🧬 " + esc(p.habilidade.nome) : ""}${p.item ? " · 🎒 " + esc(p.item.nome) : ""}</small>` : ""}
-    ${estadosHtml(p)}${barra(k, p, j)}</div>`;
+    ${estadosHtml(p)}<div class="hp-linha"><span class="hp-rot">HP</span>${barra(k, p, j)}</div>${bolas(j)}</div>`;
 }
 const miniaturas = j => j.equipe.map((q, i) =>
   `<img class="foto mini${q.hpAtual <= 0 ? " caido" : ""}${i === j.ativo ? " ativa" : ""}" ${imgAttr(q)} title="${esc(q.nome)}${q.shiny ? " ✨" : ""} ${q.hpAtual}/${q.hp}" alt="">`).join("");
@@ -101,12 +103,12 @@ export function telaBatalha() {
     <div class="sala-id">Sala ${esc(E.codigo)} <span class="papel">${E.jogador ? "Jogador " + E.papel : "Espectador"}</span>${s.torre ? ` <span class="papel">Torre</span>` : s.bot ? ` <span class="papel">Bot: ${{facil: "fácil", normal: "normal", dificil: "difícil"}[s.botNivel] || "fácil"}</span>` : ""}</div>
     ${s.torre ? torreInfo(s.torre) : `<div class="eq-adv">${miniaturas(s.j[op])}</div>`}
     ${barraCampo(s)}
-    ${caixaVida(s, op)}
-    <div class="campo">
+    <div class="campo" data-clima="${(s.campo && s.campo.clima && s.campo.clima.t) || ""}" data-terreno="${(s.campo && s.campo.terreno && s.campo.terreno.t) || ""}">
+      <div class="hud adv">${caixaVida(s, op)}</div>
       <div class="spot adv${pOp.hpAtual <= 0 ? " caido" : ""}">${spriteImg(imgN(pOp), "frente", pOp.shiny)}</div>
       <div class="spot eu${pEu.hpAtual <= 0 ? " caido" : ""}">${spriteImg(imgN(pEu), "costas", pEu.shiny)}</div>
+      <div class="hud eu">${caixaVida(s, eu)}</div>
     </div>
-    ${caixaVida(s, eu)}
     ${caixaAcao(s)}
   </div>`;
 }

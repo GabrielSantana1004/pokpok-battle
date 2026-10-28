@@ -48,13 +48,14 @@ function render() {
   $("aba-pokemon").classList.toggle("ativa", aba === "pokemon"); $("aba-pokemon").setAttribute("aria-selected", aba === "pokemon");
   $("aba-golpes").classList.toggle("ativa", aba === "golpes"); $("aba-golpes").setAttribute("aria-selected", aba === "golpes");
   $("busca").placeholder = aba === "golpes" ? "Buscar golpe por nome" : "Buscar por nome";
+  const lbShiny = $("so-shiny")?.parentElement; if (lbShiny) lbShiny.hidden = aba === "golpes"; // shiny só vale para Pokémon
   if (aba === "golpes") {
     const todos = golpesDoCatalogo(), lista = todos.filter(m => m.nome.toLowerCase().includes(q) && (!t || m.tipo === t));
     $("contagem").textContent = `${lista.length} de ${todos.length} golpes`;
     $("lista").innerHTML = lista.map(cardGolpe).join("") || `<p>${todos.length ? "Nenhum golpe encontrado." : "Nenhum golpe: o catálogo está vazio."}</p>`;
     return;
   }
-  const lista = cat.filter(p => p.nome.toLowerCase().includes(q) && (!t || p.tipos.includes(t)));
+  const so = !!$("so-shiny")?.checked, lista = cat.filter(p => p.nome.toLowerCase().includes(q) && (!t || p.tipos.includes(t)) && (!so || meus[p.id]));
   $("contagem").textContent = `${lista.length} de ${cat.length} Pokémon`;
   $("lista").innerHTML = lista.map(card).join("") ||
     (cat.length ? "<p>Nenhum Pokémon encontrado.</p>"
@@ -82,5 +83,6 @@ $("aba-pokemon").onclick = () => trocarAba("pokemon");
 $("aba-golpes").onclick = () => trocarAba("golpes");
 $("busca").oninput = render;
 $("filtro").onchange = render;
+if ($("so-shiny")) { $("so-shiny").onchange = render; if (!usuario()) { $("so-shiny").disabled = true; $("so-shiny").parentElement.title = "Entre na conta para ver seus shiny"; } }
 Object.assign(window, {exemplos});
 carregar();

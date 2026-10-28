@@ -42,7 +42,7 @@ function lista() {
 function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica fora desta área e não perde o foco
   const com = cat.filter(p => p.aprende?.length);
   const q = $("busca").value.trim().toLowerCase(), t = $("filtro").value;
-  const vistos = com.filter(p => p.nome.toLowerCase().includes(q) && (!t || p.tipos.includes(t)));
+  const so = $("so-shiny").checked, vistos = com.filter(p => p.nome.toLowerCase().includes(q) && (!t || p.tipos.includes(t)) && (!so || shiny[p.id]));
   $("contagem").textContent = `${vistos.length} de ${com.length} Pokémon`;
   $("grade").innerHTML = vistos.map(p => {
     const mv = golpesDe(p);
@@ -132,6 +132,7 @@ async function remover() {
 $("filtro").innerHTML += TIPOS.map(t => `<option>${t}</option>`).join("");
 $("busca").oninput = grade;
 $("filtro").onchange = grade;
+$("so-shiny").onchange = grade;
 async function subir(id) {
   const p = cat.find(x => x.id === id); if (!p) return;
   const n = nivelDoPokemon(niveis, id);
@@ -148,7 +149,7 @@ function itemSelect() { // só aparecem os itens que a conta tem (com cópia liv
   const eq = inv.itensEq[atual.id] || "", dono = ITENS.filter(i => (inv.itens[i.id] || 0) > 0 && (i.id === eq || copiasLivres(inv.itens, inv.itensEq, i.id, atual.id) > 0));
   $("item-eq").innerHTML = `<option value="">— sem item —</option>` + dono.map(i => `<option value="${esc(i.id)}"${i.id === eq ? " selected" : ""}>${esc(i.nome)} (${copiasLivres(inv.itens, inv.itensEq, i.id, atual.id)} livre${copiasLivres(inv.itens, inv.itensEq, i.id, atual.id) === 1 ? "" : "s"} de ${inv.itens[i.id]})${esc(marcaItem(i))}</option>`).join("");
   const i = eq && itemPorId(eq);
-  $("item-info").innerHTML = i ? `${nomeTier(i)} — ${esc(i.desc)}` : (dono.length ? "Escolha um item: ele vale nas batalhas deste Pokémon. Itens de uso único (bagas, gemas…) só somem daquela batalha." : "Você ainda não tem itens: cada nível da conta rende 1 caixa (veja acima).");
+  $("item-info").innerHTML = i ? `${nomeTier(i)} — ${esc(i.desc)}` : (dono.length ? "Escolha um item: ele vale nas batalhas deste Pokémon. Itens de uso único (bagas, gemas…) só somem daquela batalha." : "Você ainda não tem itens: cada nível da conta rende 1 caixa (abra na aba Perfil).");
 }
 async function abrirUmaCaixa() {
   aviso();
@@ -160,34 +161,63 @@ async function abrirUmaCaixa() {
 }
 window.abrirUmaCaixa = abrirUmaCaixa;
 
-// ---------- perfil: nível, XP e estoque de itens ----------
+// ---------- aba Perfil: nível, XP e estoque de itens ----------
 async function perfil() {
   try {
     const st = await lerStatus(u.chave), el = $("perfil"); pontos = st.pontos; if (!$("lista-pk").hidden) grade();
-    el.innerHTML = `<div class="perfil-nivel"><span class="nv-selo">Nv ${st.nivel}</span>
-      <div class="perfil-info"><b>${esc(u.nick)}</b>
-        <div class="xp-barra" role="progressbar" aria-valuenow="${st.noNivel}" aria-valuemax="${st.tamanho}"><i style="width:${st.pct}%"></i></div>
-        <small>${st.noNivel}/${st.tamanho} XP · faltam ${st.falta} para o nível ${st.nivel + 1} · vitória +10/20/40 XP contra o bot (fácil/normal/difícil), +20 em PvP; derrota +5 XP</small></div></div>
-      <div class="perfil-itens"><span title="Cada nível da conta rende 1 ponto, que sobe 1 nível de um Pokémon (máx. ${REGRAS.nivelMax})">🎯 ${st.pontos} ${st.pontos === 1 ? "ponto de treino" : "pontos de treino"}</span><span>🏆 ${st.vitorias} ${st.vitorias === 1 ? "vitória" : "vitórias"}</span><span>🧪 ${st.pocoes} ${st.pocoes === 1 ? "poção" : "poções"}</span><span>💫 ${st.revives} ${st.revives === 1 ? "reviver" : "revives"}</span><span title="Combustível do golpe Z: 1 por batalha em que você usa">💎 ${st.zcristais} ${st.zcristais === 1 ? "cristal Z" : "cristais Z"}</span><span title="Cada nível da conta rende 1 caixa. Elas ficam guardadas e abrem na próxima atualização (cristais Z e itens)">📦 ${st.caixas} ${st.caixas === 1 ? "caixa guardada" : "caixas guardadas"}</span></div>`;
-    el.innerHTML += `<div class="perfil-itens"><span>📦 ${st.caixas} ${st.caixas === 1 ? "caixa" : "caixas"} ${st.caixas > 0 ? `<button type="button" class="primario" onclick="abrirUmaCaixa()">Abrir uma caixa</button>` : ""}</span>
-      <span>💎 ${st.zcristais || 0} cristais Z</span></div>${caixaRes ? `<p class="caixa-res">${caixaRes}</p>` : ""}
-      <details class="mochila"><summary>🎒 Meus itens (${Object.values(inv.itens).reduce((a, b) => a + b, 0)})</summary>${ITENS.filter(i => inv.itens[i.id]).map(i => `<div>${nomeTier(i)} <b>${esc(i.nome)}</b> ×${inv.itens[i.id]} — <small>${esc(i.desc)}</small></div>`).join("") || "<small>Ainda sem itens.</small>"}</details>`;
-    el.hidden = false;
+    const pl = (n, um, varios) => n === 1 ? um : varios;
+    const lin = (ico, nome, val, dica = "") => `<li title="${esc(dica)}"><span class="pf-ico">${ico}</span><span class="pf-rot">${nome}</span><b class="pf-val">${val}</b></li>`;
+    const meus = ITENS.filter(i => inv.itens[i.id]), totalItens = meus.reduce((a, i) => a + inv.itens[i.id], 0);
+    el.innerHTML = `<div class="pf-capa">
+        <span class="nv-selo grande">Nv ${st.nivel}</span>
+        <div class="pf-ident"><h2 class="pf-nome">${esc(u.nick)}</h2><span class="pf-sub">Treinador · nível ${st.nivel}</span>
+          <div class="xp-barra" role="progressbar" aria-valuenow="${st.noNivel}" aria-valuemax="${st.tamanho}"><i style="width:${st.pct}%"></i></div>
+          <small class="pf-xp"><b>${st.noNivel}/${st.tamanho} XP</b> · faltam ${st.falta} para o nível ${st.nivel + 1}</small></div></div>
+      <div class="pf-corpo">
+        <h3 class="pf-titulo">Estatísticas</h3>
+        <ul class="pf-lista">
+          ${lin("🏆", "Vitórias", st.vitorias)}
+          ${lin("🎯", pl(st.pontos, "Ponto de treino", "Pontos de treino"), st.pontos, `Cada nível da conta rende 1 ponto, que sobe 1 nível de um Pokémon (máx. ${REGRAS.nivelMax})`)}
+        </ul>
+        <h3 class="pf-titulo">Recursos</h3>
+        <ul class="pf-lista">
+          ${lin("🧪", pl(st.pocoes, "Poção", "Poções"), st.pocoes)}
+          ${lin("💫", pl(st.revives, "Reviver", "Revives"), st.revives)}
+          ${lin("💎", pl(st.zcristais, "Cristal Z", "Cristais Z"), st.zcristais || 0, "Combustível do golpe Z: 1 por batalha em que você usa")}
+        </ul>
+        <h3 class="pf-titulo">Caixas</h3>
+        <div class="pf-caixas"><span class="pf-ico">📦</span>
+          <div class="pf-rot"><b>${st.caixas} ${pl(st.caixas, "caixa guardada", "caixas guardadas")}</b><small>Cada nível da conta rende 1 caixa (cristais Z e itens).</small></div>
+          ${st.caixas > 0 ? `<button type="button" class="primario" onclick="abrirUmaCaixa()">Abrir uma caixa</button>` : `<span class="pf-vazio">Suba de nível para ganhar mais</span>`}</div>
+        ${caixaRes ? `<p class="caixa-res">${caixaRes}</p>` : ""}
+        <h3 class="pf-titulo">Mochila <span class="pf-contador">${totalItens}</span></h3>
+        <ul class="pf-itens">${meus.map(i => `<li><span class="pf-item-nome">${nomeTier(i)} <b>${esc(i.nome)}</b></span><b class="pf-qtd">×${inv.itens[i.id]}</b><small>${esc(i.desc)}</small></li>`).join("") || `<li class="pf-vazio">Ainda sem itens. Abra caixas para ganhar.</li>`}</ul>
+        <details class="pf-xpinfo"><summary>Como ganhar XP</summary><ul>
+          <li>Vitória contra o bot: <b>+10 / +20 / +40 XP</b> (fácil / normal / difícil)</li>
+          <li>Vitória em PvP: <b>+20 XP</b></li>
+          <li>Derrota: <b>+5 XP</b></li></ul></details>
+      </div>`;
   } catch(e) { /* o perfil é só informativo */ }
 }
 
-// ---------- abas: Pokémon (golpes) e Times (equipes salvas na conta) ----------
+// ---------- abas: Pokémon (golpes), Times (equipes salvas na conta) e Perfil (nível, XP, itens e caixas) ----------
 function aba(qual) {
-  const times = qual === "times";
-  $("aba-pk").classList.toggle("ativa", !times); $("aba-pk").setAttribute("aria-selected", String(!times));
-  $("aba-times").classList.toggle("ativa", times); $("aba-times").setAttribute("aria-selected", String(times));
+  const times = qual === "times", prf = qual === "perfil";
+  [["pk", qual === "pk"], ["times", times], ["perfil", prf]].forEach(([k, ativa]) => {
+    const b = $("aba-" + k); b.classList.toggle("ativa", ativa); b.setAttribute("aria-selected", String(ativa));
+  });
+  $("perfil").hidden = !prf;
   if (times) {
     $("lista-pk").hidden = true; $("editor").hidden = true;
     montarTimes($("times"), {chave: u.chave, prontos: cat.filter(p => p.aprende?.length && golpesDe(p).length).map(p => ({...p, nivel: nivelDoPokemon(niveis, p.id)})), shiny, golpes: golpesDe}); // só Pokémon com golpes escolhidos
+  } else if (prf) {
+    $("times").hidden = true; $("lista-pk").hidden = true; $("editor").hidden = true;
+    $("perfil").hidden = false; perfil(); // atualiza os números ao abrir a aba
   } else { $("times").hidden = true; lista(); }
 }
 $("aba-pk").onclick = () => aba("pk");
 $("aba-times").onclick = () => aba("times");
+$("aba-perfil").onclick = () => aba("perfil");
 
 // ---------- início ----------
 if (!u) $("conta").hidden = false;

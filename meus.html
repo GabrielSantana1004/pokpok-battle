@@ -26,17 +26,19 @@
             <button id="criar">Criar conta</button>
         </div>
     </section>
-    <section id="perfil" class="perfil" hidden></section>
     <div class="abas" id="abas-meus" role="tablist" hidden>
         <button type="button" id="aba-pk" class="aba ativa" role="tab" aria-selected="true">Pokémon</button>
         <button type="button" id="aba-times" class="aba" role="tab" aria-selected="false">Times</button>
+        <button type="button" id="aba-perfil" class="aba" role="tab" aria-selected="false">Perfil</button>
     </div>
+    <section id="perfil" class="perfil" hidden></section>
     <section id="times" hidden></section>
     <section id="lista-pk" hidden>
         <p id="resumo"></p>
         <section class="filtros">
             <input id="busca" type="search" placeholder="Buscar por nome">
             <select id="filtro"><option value="">Todos os tipos</option></select>
+            <label class="so-shiny" title="Mostrar só os Pokémon shiny da sua conta"><input type="checkbox" id="so-shiny"> ✨ Só shiny</label>
             <span id="contagem"></span>
         </section>
         <div id="grade" class="grade"></div>

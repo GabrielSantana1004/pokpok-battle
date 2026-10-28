@@ -2,7 +2,7 @@
 // Cada Pokémon é buscado uma vez e o resultado fica guardado no navegador.
 //  - imagemDe / carregarImagens: arte oficial (catálogo, cadastro, miniaturas)
 //  - spriteImg / carregarSprites: sprites animados da batalha (frente e costas)
-const CHAVE = "pbb_img4"; // 4: guarda também as imagens shiny
+const CHAVE = "pbb_img5"; // 5: guarda também a altura real (alt, em decímetros); 4: imagens shiny
 const REPO = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
 let cache = {};
 try { cache = JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch(e) {}
@@ -25,7 +25,8 @@ function dadosDe(d) {
     bs: s?.other?.showdown?.back_shiny || (id ? `${REPO}/other/showdown/back/shiny/${id}.gif` : ""),
     sfs: s?.front_shiny || "",
     sbs: s?.back_shiny || "",
-    n: id || 0 // número do Pokémon (até 649 = pixel art de verdade)
+    n: id || 0, // número do Pokémon (até 649 = pixel art de verdade)
+    alt: d?.height || 0 // altura real em decímetros (PokeAPI): define o tamanho do sprite na batalha
   };
 }
 const temAlgo = d => d && [d.a, d.f, d.b, d.sf, d.sb].some(Boolean);
@@ -98,11 +99,14 @@ function injetarEstilo() {
 export function spriteImg(nome, lado = "frente", shiny = false) {
   injetarEstilo();
   const d = cache[slug(nome)], u = d ? (filaDe(d, lado, shiny)[0] || "") : "";
-  return `<img class="sprite" data-sprite="${at(nome)}" data-lado="${lado}"${shiny ? ' data-shiny="1"' : ""}${d ? ` data-n="${d.n || 0}"` : ""} alt=""${u ? ` src="${at(u)}"` : ""}>`;
+  return `<img class="sprite" data-sprite="${at(nome)}" data-lado="${lado}"${shiny ? ' data-shiny="1"' : ""}${d ? ` data-n="${d.n || 0}" data-alt="${d.alt || 0}"` : ""} alt=""${u ? ` src="${at(u)}"` : ""}>`;
 }
 
-// Tamanho na tela. O sprite cresce só um pouco com o tamanho original (Pikachu não fica
-// do tamanho do Charizard, mas a diferença é suave) e nunca passa da caixa onde está (.spot da batalha).
+// Tamanho na tela.
+//  - na batalha (dentro de .spot): proporcional à ALTURA REAL do Pokémon (PokeAPI), em escala de log:
+//    0,2 m ou menos = 30% da caixa, 6 m ou mais = 100% da caixa. Assim Wailord é enorme e Joltik é minúsculo.
+//  - fora da batalha (catálogo): o sprite cresce só um pouco com o tamanho original, de forma suave.
+//  Nunca passa da caixa onde está (.spot da batalha).
 //  - até a 5ª geração (pixel art): escala inteira (2×, 3×...), a mais próxima do tamanho desejado, para ficar nítido
 //  - gerações seguintes (imagens suaves): escala contínua, até 2×
 export function ajustar(img) {
@@ -111,8 +115,12 @@ export function ajustar(img) {
   const n = +img.dataset.n || 0, caixa = img.closest ? img.closest(".spot") : null;
   const maxH = caixa && caixa.clientHeight ? caixa.clientHeight * 0.92 : 215, maxW = caixa && caixa.clientWidth ? caixa.clientWidth * 0.96 : 9999;
   let pixel = n > 0 && n <= 649, k;
-  const alvo = Math.min(215, maxH, 170 * Math.pow(h / 100, 0.4));
-  if (h > maxH || w > maxW) { pixel = false; k = Math.min(maxH / h, maxW / w); }          // não cabe: reduz até caber
+  const alvo = Math.min(215, maxH, 170 * Math.pow(h / 100, 0.4)), alt = +img.dataset.alt || 0;
+  if (caixa && alt > 0) { // proporção pela altura real
+    const t = Math.min(1, Math.max(0, (Math.log(alt) - Math.log(2)) / (Math.log(60) - Math.log(2))));
+    k = Math.min(maxH * (0.3 + 0.7 * t) / h, maxW / w);
+  }
+  else if (h > maxH || w > maxW) { pixel = false; k = Math.min(maxH / h, maxW / w); }          // não cabe: reduz até caber
   else if (pixel) { k = 1; for (const c of [2, 3, 4]) if (h * c <= maxH && w * c <= maxW && Math.abs(h * c - alvo) < Math.abs(h * k - alvo)) k = c; }
   else k = Math.min(2, alvo / h, maxW / w);
   img.style.width = Math.round(w * k) + "px";
@@ -125,7 +133,7 @@ export function carregarSprites(raiz = document) {
     img.onload = () => ajustar(img);
     if (img.complete && img.naturalHeight) ajustar(img);
     spritesDe(img.dataset.sprite).then(d => {
-      if (d) img.dataset.n = d.n || 0;
+      if (d) { img.dataset.n = d.n || 0; img.dataset.alt = d.alt || 0; if (img.complete && img.naturalHeight) ajustar(img); }
       const fila = d ? filaDe(d, img.dataset.lado, img.dataset.shiny === "1") : [];
       if (!fila.length) { img.classList.add("sem-foto"); return; }
       const atual = img.getAttribute("src");
