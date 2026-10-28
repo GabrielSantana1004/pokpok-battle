@@ -1,0 +1,551 @@
+/* ==========================================================
+   PokPok Battle — style.css
+   ========================================================== */
+
+:root {
+    color-scheme: light;
+    --red: #e53935;
+    --red-glow: rgba(255, 0, 0, .45);
+    --blue: #1e4fd8;
+    --blue-soft: #e8efff;
+    --green-dark: rgb(0, 95, 27);
+    --yellow: #ffd60a;
+    --yellow-dark: #8a6d00;
+    --red-dark: #8b1a1a;
+    --green: greenyellow;
+    --ink: #1a1a1a;
+    --panel: #f1f1f1;
+    --line: #c9c9c9;
+    --radius: 6px;
+    --ease: .15s ease;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 12px;
+    background: Canvas;
+    color: var(--ink);
+}
+
+
+/* ---------- Cabeçalho / títulos ---------- */
+
+h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    line-height: 1.1;
+    letter-spacing: -.01em;
+}
+
+
+/* linha do logo (div com flex inline no index.html) */
+
+body>div[style*="flex"] {
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+body>div[style*="flex"] img {
+    flex: none;
+    object-fit: contain;
+    transition: transform .4s ease;
+}
+
+body>div[style*="flex"] img:hover {
+    transform: rotate(25deg);
+}
+
+h2 {
+    margin: 0 0 8px;
+    font-size: 1.25rem;
+}
+
+h2 small {
+    font-size: .7em;
+    font-weight: 500;
+    color: #555;
+}
+
+h3 {
+    margin: 16px 0 6px;
+}
+
+
+/* ---------- Navegação e links ---------- */
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+a {
+    display: inline-block;
+    color: black;
+    background: #fff;
+    border: 3px solid black;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 3px 8px;
+    transition: background-color var(--ease), color var(--ease), transform var(--ease);
+}
+
+a:hover {
+    background: black;
+    color: #fff;
+}
+
+a:active {
+    transform: translateY(1px);
+}
+
+nav a {
+    margin-right: 0;
+}
+
+
+/* ---------- Seções (cards) ---------- */
+
+section {
+    border: 3px solid var(--red);
+    box-shadow: 0 0 10px var(--red-glow);
+    padding: 12px;
+    margin: 14px 0;
+    border-radius: 10px;
+    background-color: var(--panel);
+}
+
+
+/* ---------- Formulários e botões ---------- */
+
+input,
+select,
+button,
+textarea {
+    font: inherit;
+    font-size: 16px;
+    margin: 2px;
+    color: inherit;
+}
+
+input,
+select,
+textarea,
+button {
+    border: 3px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 4px 8px;
+    background: #fff;
+}
+
+#cm,
+button,
+#ce,
+#cat {
+    border: 3px solid var(--blue);
+    border-radius: var(--radius);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #ffcb05;
+    outline-offset: 2px;
+}
+
+input[type=number] {
+    width: 70px;
+    border: 3px solid var(--blue);
+    border-radius: var(--radius);
+}
+
+input.aviso {
+    border-color: var(--red);
+    animation: sacudir .3s linear 2;
+}
+
+input::placeholder {
+    color: #888;
+}
+
+button {
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color var(--ease), transform var(--ease), box-shadow var(--ease);
+}
+
+button:hover {
+    background: var(--blue-soft);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .18);
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+
+/* botões destrutivos */
+
+#clear,
+button[onclick^="del("],
+button[onclick^="rm("] {
+    border-color: var(--red);
+}
+
+#clear:hover,
+button[onclick^="del("]:hover,
+button[onclick^="rm("]:hover {
+    background: #ffe5e5;
+}
+
+
+/* curar */
+
+#curar {
+    border: 3px solid var(--green-dark);
+    border-radius: var(--radius);
+    background-color: var(--green);
+}
+
+#curar:hover {
+    background-color: #c4f53a;
+}
+
+
+/* ---------- Equipe ---------- */
+
+#team>div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+#team>div:last-child {
+    border-bottom: 0;
+}
+
+
+/* empurra o grupo de botões para a direita */
+
+#team>div button:first-of-type {
+    margin-left: auto;
+}
+
+
+/* ---------- Ficha do Pokémon ---------- */
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 6px 0;
+}
+
+td,
+th {
+    padding: 2px 10px 2px 0;
+    text-align: left;
+}
+
+th {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #555;
+    border-bottom: 2px solid var(--line);
+}
+
+td {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* barra de HP */
+
+progress {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 18px;
+    margin: 4px 0 10px;
+    border: 2px solid var(--green-dark);
+    border-radius: 100px;
+    background-color: #fff;
+    overflow: hidden;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #fff;
+    border-radius: 100px;
+}
+
+progress::-webkit-progress-value {
+    background: linear-gradient(var(--green), #7dd321);
+    border-radius: 100px;
+    transition: width .3s ease;
+}
+
+progress::-moz-progress-bar {
+    background: linear-gradient(var(--green), #7dd321);
+    border-radius: 100px;
+}
+
+
+/* cor da barra conforme o HP: verde >= 50%, amarelo >= 20%, vermelho < 20% */
+
+progress[data-nivel="medio"] {
+    border-color: var(--yellow-dark);
+}
+
+progress[data-nivel="medio"]::-webkit-progress-value {
+    background: linear-gradient(#ffe45c, var(--yellow));
+}
+
+progress[data-nivel="medio"]::-moz-progress-bar {
+    background: linear-gradient(#ffe45c, var(--yellow));
+}
+
+progress[data-nivel="baixo"] {
+    border-color: var(--red-dark);
+}
+
+progress[data-nivel="baixo"]::-webkit-progress-value {
+    background: linear-gradient(#ff6b6b, var(--red));
+}
+
+progress[data-nivel="baixo"]::-moz-progress-bar {
+    background: linear-gradient(#ff6b6b, var(--red));
+}
+
+
+/* movimentos, um embaixo do outro */
+
+#sheet ul {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+}
+
+#sheet li {
+    padding: 2px 10px;
+    font-size: .9rem;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+}
+
+
+/* ---------- Calculadora ---------- */
+
+#calc>div {
+    margin: 8px 0;
+}
+
+#res:not(:empty) {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: #fff;
+    border-left: 4px solid var(--blue);
+    border-radius: var(--radius);
+}
+
+#res p {
+    margin: 0;
+}
+
+
+/* dados (faces desenhadas com 9 "pips" em grade 3x3) */
+
+.dados {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.dados-ctl {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.dado {
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    width: 56px;
+    height: 56px;
+    padding: 8px;
+    background: #fff;
+    border: 3px solid black;
+    border-radius: 12px;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, .25);
+}
+
+.dado span {
+    place-self: center;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+}
+
+
+/* centro: 1, 3, 5 */
+
+.dado:is([data-v="1"], [data-v="3"], [data-v="5"]) span:nth-child(5),
+
+/* cantos 1 e 9: 2 a 6 */
+
+.dado:is([data-v="2"], [data-v="3"], [data-v="4"], [data-v="5"], [data-v="6"]) :is(span:nth-child(1), span:nth-child(9)),
+
+/* cantos 3 e 7: 4 a 6 */
+
+.dado:is([data-v="4"], [data-v="5"], [data-v="6"]) :is(span:nth-child(3), span:nth-child(7)),
+
+/* laterais 4 e 6: só o 6 */
+
+.dado[data-v="6"] :is(span:nth-child(4), span:nth-child(6)) {
+    background: var(--ink);
+}
+
+.dado.rolando {
+    animation: sacudir .25s linear infinite;
+}
+
+@keyframes sacudir {
+    0% {
+        transform: rotate(0) translateY(0);
+    }
+    25% {
+        transform: rotate(-12deg) translateY(-3px);
+    }
+    50% {
+        transform: rotate(8deg) translateY(0);
+    }
+    75% {
+        transform: rotate(-6deg) translateY(-2px);
+    }
+    100% {
+        transform: rotate(0) translateY(0);
+    }
+}
+
+
+/* ---------- Catálogo ---------- */
+
+#lista>div {
+    padding: 4px 0;
+}
+
+#lista hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 6px 0;
+}
+
+#lista hr:last-child {
+    display: none;
+}
+
+
+/* ---------- Mensagens ---------- */
+
+#erro:not(:empty),
+#msg:not(:empty) {
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    background: #fff;
+    border-left: 4px solid var(--blue);
+}
+
+#erro:not(:empty) {
+    border-left-color: var(--red);
+    color: #9b1c1c;
+    background: #ffecec;
+}
+
+
+/* ---------- Cadastro ---------- */
+
+#form>div {
+    margin: 8px 0;
+}
+
+#form input:not([type=number]) {
+    max-width: 100%;
+}
+
+#form>button {
+    margin-top: 10px;
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 520px) {
+    body {
+        padding: 8px;
+    }
+    section {
+        padding: 10px;
+    }
+    td,
+    th {
+        padding-right: 4px;
+        font-size: .85rem;
+    }
+    body>div[style*="flex"] img {
+        width: 56px !important;
+        height: 56px !important;
+    }
+    #team>div button:first-of-type {
+        margin-left: 0;
+    }
+}
+
+
+/* ---------- Acessibilidade ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin — PokPok Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="tema.css">
+    <style>
+        table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+        th, td { border-bottom: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: middle; }
+        th { position: sticky; top: 0; background: #f4f4f4; }
+        td img { width: 40px; height: 40px; object-fit: contain; }
+        .edit label { display: inline-block; margin: 3px 8px 3px 0; }
+        .edit input[type=number] { width: 70px; }
+        #erro { color: #b00020; }
+    </style>
+</head>
+
+<body>
+    <!-- Página só para o administrador (não tem link no menu): abra admin.html direto. Pode apagar admin.html e admin.js; nada depende deles. -->
+    <h2>Admin — Pokémon cadastrados</h2>
+    <p><a href="importar.html">Importar Pokémon</a> · <a href="index.html">Voltar ao jogo</a></p>
+    <p id="erro"></p>
+    <section class="filtros">
+        <input id="busca" type="search" placeholder="Buscar por nome">
+        <select id="filtro"><option value="">Todos os tipos</option></select>
+        <span id="contagem"></span>
+    </section>
+    <p><button id="bt-megas">Buscar megaevoluções de todos os Pokémon</button> <small>(só consulta a PokéAPI e grava podeMega/megas; não mexe nos golpes)</small></p>
+    <p><button id="bt-hab">🧬 Buscar habilidades de todos os Pokémon + gerar listas (habilidades e golpes)</button> <small>(consulta a PokéAPI só dos que ainda não têm habilidades; depois baixa os arquivos de habilidades e a lista de golpes que cada Pokémon pode escolher)</small></p>
+    <p><button id="bt-limpar-hab">🧹 Remover habilidades que não se aplicam (13: Rivalry, Cute Charm, Heavy Metal, Light Metal, Multitype, RKS System, Illusion, Pressure, Run Away, Telepathy, Healer, Plus, Stalwart)</button> <small>(o jogo não tem gênero nem peso; tira essas habilidades da lista dos Pokémon, sem deixar nenhum sem habilidade)</small></p>
+    <p><button id="bt-exportar">⬇ Exportar lista de Pokémon (CSV + JSON)</button> <small>(baixa a lista completa do catálogo: id, nome, tipos e megas, para planejar habilidades e itens um por um)</small></p>
+    <p><label>Dar cristais Z à conta <input id="z-nick" placeholder="nickname" size="14"></label> <input id="z-qtd" type="number" value="3" min="1" style="width:4.5em"> <button id="bt-z">💎 Dar cristais</button> <small>(ferramenta de teste; as caixas é que vão dar cristais depois)</small></p>
+    <pre id="log"></pre>
+    <section id="editor" class="edit" hidden></section>
+    <table>
+        <thead><tr><th></th><th>Nome</th><th>Tipos</th><th>HP</th><th>Atq</th><th>Def</th><th>AtqE</th><th>DefE</th><th>Vel</th><th>Golpes</th><th>Mega</th><th></th></tr></thead>
+        <tbody id="linhas"><tr><td colspan="12">Carregando...</td></tr></tbody>
+    </table>
+    <script type="module" src="admin.js"></script>
+</body>
+
+</html>

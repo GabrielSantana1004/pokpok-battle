@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Meus Pokémon — PokPok Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="visual.css">
+    <link rel="stylesheet" href="telas.css">
+    <link rel="stylesheet" href="tema.css">
+</head>
+
+<body>
+    <header class="topo"><img src="Poké_Ball_icon.svg.webp" alt=""><h1>PokPok Battle</h1></header>
+    <h3 class="titulo-pagina">Meus Pokémon</h3>
+    <nav id="nav"></nav>
+    <p id="erro" class="aviso-erro"></p>
+    <section id="conta" hidden>
+        <h2>Entrar</h2>
+        <p>Crie uma conta com nickname e senha para escolher os golpes dos seus Pokémon e jogar.</p>
+        <div class="form-conta">
+            <input id="nick" placeholder="Nickname" maxlength="20" autocomplete="username">
+            <input id="senha" type="password" placeholder="Senha" autocomplete="current-password">
+            <button id="entrar" class="primario">Entrar</button>
+            <button id="criar">Criar conta</button>
+        </div>
+    </section>
+    <section id="perfil" class="perfil" hidden></section>
+    <div class="abas" id="abas-meus" role="tablist" hidden>
+        <button type="button" id="aba-pk" class="aba ativa" role="tab" aria-selected="true">Pokémon</button>
+        <button type="button" id="aba-times" class="aba" role="tab" aria-selected="false">Times</button>
+    </div>
+    <section id="times" hidden></section>
+    <section id="lista-pk" hidden>
+        <p id="resumo"></p>
+        <section class="filtros">
+            <input id="busca" type="search" placeholder="Buscar por nome">
+            <select id="filtro"><option value="">Todos os tipos</option></select>
+            <span id="contagem"></span>
+        </section>
+        <div id="grade" class="grade"></div>
+    </section>
+    <section id="editor" hidden></section>
+    <script type="module" src="meus.js"></script>
+</body>
+
+</html>
