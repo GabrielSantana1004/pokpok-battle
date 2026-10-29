@@ -3,7 +3,7 @@ import { listar, salvar, remover } from "./firebase.js";
 import { STATS, TIPOS, esc, valid } from "./common.js";
 import { carregarImagens } from "./imagem.js";
 import { buscarMegas } from "./megas.js";
-import { darCristais, chaveDeNick } from "./usuarios.js";
+import { darCristais, chaveDeNick, definirPermissaoShiny } from "./usuarios.js";
 import { buscarHabilidades } from "./habilidadesapi.js";
 import { relatorioHabilidades, relatorioGolpes, relatorioCobertura, csv, HAB_NAO_SE_APLICAM } from "./habilidades.js";
 import { ITENS, TIERS } from "./itens.js";
@@ -130,6 +130,16 @@ $("bt-z").onclick = async () => { // dá (ou tira, com número negativo no conso
 // Exporta a lista completa do catálogo (ordem alfabética): um CSV para abrir em planilha e um JSON com os mesmos dados
 const baixar = (nome, texto, tipo) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([texto], {type: tipo})); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
 const celula = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+async function permissaoShiny(ligado) { // dá ou tira a permissão especial de escolher shiny
+  const nick = $("sh-nick").value.trim();
+  if (!nick) return aviso("Informe o nickname da conta.");
+  try { await definirPermissaoShiny(chaveDeNick(nick), ligado); aviso(`Pronto: ${nick} ${ligado ? "agora pode" : "não pode mais"} escolher shiny.`); }
+  catch(e) { aviso("Não foi possível alterar a permissão: " + e.message); }
+}
+$("bt-sh-dar").onclick = () => permissaoShiny(true);
+$("bt-sh-tirar").onclick = () => permissaoShiny(false);
+$("sh-nick").onkeydown = e => { if (e.key === "Enter") permissaoShiny(true); };
+
 $("bt-exportar").onclick = () => {
   const lista = cat.map(p => ({id: p.id, nome: p.nome, tipos: p.tipos, megas: (p.megas || []).map(m => m.nome), hp: p.hp, atk: p.atk, def: p.def, spa: p.spa, spd: p.spd, spe: p.spe}));
   const csv = "\ufeff" + ["id;nome;tipos;megas;hp;atk;def;spa;spd;spe", ...lista.map(p => [p.id, p.nome, p.tipos.join("/"), p.megas.join(", "), p.hp, p.atk, p.def, p.spa, p.spd, p.spe].map(celula).join(";"))].join("\r\n");

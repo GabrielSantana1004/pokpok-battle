@@ -5,7 +5,7 @@ import { montarTimes } from "./meus-times.js";
 import { lerStatus, lerNiveis, subirNivelPokemon } from "./usuarios.js";
 import { nivelDoPokemon } from "./nivel.js";
 import { REGRAS, statsFinais } from "./regras.js";
-import { usuario, criarConta, entrarConta, lerBuilds, salvarBuild, lerShiny, lerEscolhasHab, salvarEscolhaHab } from "./usuarios.js";
+import { usuario, criarConta, entrarConta, lerBuilds, salvarBuild, lerShiny, lerEscolhasHab, salvarEscolhaHab, podeEscolherShiny, definirShiny } from "./usuarios.js";
 import { habilidadeEscolhida, marcaHabilidade, estadoHabilidade } from "./habilidades.js";
 import { lerInventario, abrirCaixa, equiparItem } from "./usuarios.js";
 import { ITENS, TIERS, itemPorId, copiasLivres, marcaItem } from "./itens.js";
@@ -15,7 +15,7 @@ const CAT = {fisico: "Físico", especial: "Especial", status: "Status"};
 const badge = t => `<span class="tipo t-${esc(t)}">${esc(t)}</span>`;
 const aviso = t => { $("erro").textContent = t || ""; };
 const MAX = 4;
-let u = usuario(), inv = {itens: {}, itensEq: {}}, caixaRes = "", cat = [], builds = {}, shiny = {}, habs = {}, niveis = {}, pontos = 0, atual = null, marcados = [], recado = "";
+let u = usuario(), podeShiny = false, inv = {itens: {}, itensEq: {}}, caixaRes = "", cat = [], builds = {}, shiny = {}, habs = {}, niveis = {}, pontos = 0, atual = null, marcados = [], recado = "";
 
 // ---------- conta ----------
 async function conta(acao) {
@@ -54,6 +54,7 @@ function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica f
       <ul class="golpes">${mv.length ? mv.map(m => `<li>${badge(m.tipo)} ${esc(m.nome)} <small>${CAT[m.cat] || m.cat}</small></li>`).join("") : "<li><small>Sem golpes escolhidos</small></li>"}</ul>
       <div class="acoes"><button class="primario" onclick="abrir('${esc(p.id)}')">${mv.length ? "Editar golpes" : "Escolher golpes"}</button>
         <button onclick="subir('${esc(p.id)}')" ${pontos > 0 && nivelDoPokemon(niveis, p.id) < REGRAS.nivelMax ? "" : "disabled"} title="Gasta 1 ponto de treino">⬆ Subir nível</button></div>
+      ${podeShiny ? `<label class="shiny-opcao" title="Liga ou desliga o shiny deste Pokémon"><input type="checkbox" data-shiny-id="${esc(p.id)}"${shiny[p.id] ? " checked" : ""}> ✨ Shiny</label>` : ""}
     </article>`;
   }).join("") || (com.length ? "<p>Nenhum Pokémon encontrado.</p>" : "<p>Nenhum Pokémon com lista de golpes ainda.</p>");
   carregarImagens($("grade"));
@@ -66,8 +67,9 @@ function abrir(id) {
   $("lista-pk").hidden = true; $("editor").hidden = false;
   $("editor").innerHTML = `<div class="topo-editor">
       <img class="foto mini" data-pokemon="${esc(atual.nome)}"${shiny[atual.id] ? ' data-shiny="1"' : ""} alt="">
-      <div><h2>${esc(atual.nome)}${shiny[atual.id] ? " ✨" : ""} <small class="nv-pk">Nv ${nivelDoPokemon(niveis, atual.id)}</small></h2><div class="tipos">${atual.tipos.map(badge).join("")}</div></div>
+      <div><h2>${esc(atual.nome)}<span id="ed-ico">${shiny[atual.id] ? " ✨" : ""}</span> <small class="nv-pk">Nv ${nivelDoPokemon(niveis, atual.id)}</small></h2><div class="tipos">${atual.tipos.map(badge).join("")}</div></div>
       <button id="voltar">← Voltar</button></div>
+    ${podeShiny ? `<label class="shiny-opcao" title="Liga ou desliga o shiny deste Pokémon"><input type="checkbox" id="shiny-ed"${shiny[atual.id] ? " checked" : ""}> ✨ Shiny</label>` : ""}
     <div class="stats stats-editor">${STATS.map(s => `<div><small>${s[1]}</small><b>${atual[s[0]]}</b></div>`).join("")}</div>
     <p class="dica">Nível ${nivelDoPokemon(niveis, atual.id)} em batalha: ${(() => { const f = statsFinais(atual, {...REGRAS, nivel: nivelDoPokemon(niveis, atual.id)}); return STATS.map(s => `${s[1]} ${f[s[0]]}`).join(" · "); })()}</p>
     ${(() => { const hs = atual.habilidades || [], em = habilidadeEscolhida(atual, habs);
@@ -86,6 +88,16 @@ function abrir(id) {
       <button id="padrao">Usar golpes padrão</button>${builds[id] ? '<button id="remover-b" class="remover">Remover build</button>' : ""}</div>`;
   carregarImagens($("editor"));
   $("voltar").onclick = lista;
+  if ($("shiny-ed")) $("shiny-ed").onchange = async e => {
+    const caixa = e.target, id = atual.id; caixa.disabled = true;
+    try {
+      shiny = await definirShiny(u.chave, id, caixa.checked); aviso(); recado = "";
+      $("ed-ico").textContent = shiny[id] ? " ✨" : "";
+      const img = $("editor").querySelector("img.foto"); if (shiny[id]) img.dataset.shiny = "1"; else delete img.dataset.shiny;
+      carregarImagens($("editor"));
+    } catch(err) { caixa.checked = !caixa.checked; aviso(err.message || "Não foi possível salvar o shiny."); }
+    caixa.disabled = false;
+  };
   itemSelect();
   $("item-eq").onchange = async e => { try { inv.itensEq = await equiparItem(u.chave, atual.id, e.target.value || null); aviso(); recado = ""; itemSelect(); } catch(err) { aviso(err.message || "Não foi possível equipar o item."); itemSelect(); } };
   if ($("hab")) $("hab").onchange = async e => { try { habs = await salvarEscolhaHab(u.chave, atual.id, e.target.value); { const i = estadoHabilidade(e.target.value); $("hab-info").textContent = i.texto + (i.nota ? " — " + i.nota : "") + ". Salvo."; } aviso(); recado = ""; } catch(err) { aviso(err.message || "Não foi possível salvar a habilidade."); } };
@@ -133,6 +145,12 @@ $("filtro").innerHTML += TIPOS.map(t => `<option>${t}</option>`).join("");
 $("busca").oninput = grade;
 $("filtro").onchange = grade;
 $("so-shiny").onchange = grade;
+$("grade").onchange = async e => { // shiny liga/desliga direto no cartão (só contas com permissão)
+  const caixa = e.target.closest("[data-shiny-id]"); if (!caixa) return;
+  const id = caixa.dataset.shinyId, p = cat.find(x => x.id === id); caixa.disabled = true;
+  try { shiny = await definirShiny(u.chave, id, caixa.checked); aviso(); recado = `${p?.nome || "Pokémon"}: shiny ${shiny[id] ? "ligado" : "desligado"}.`; lista(); }
+  catch(err) { caixa.checked = !caixa.checked; caixa.disabled = false; aviso(err.message || "Não foi possível salvar o shiny."); }
+};
 async function subir(id) {
   const p = cat.find(x => x.id === id); if (!p) return;
   const n = nivelDoPokemon(niveis, id);
@@ -222,6 +240,6 @@ $("aba-perfil").onclick = () => aba("perfil");
 // ---------- início ----------
 if (!u) $("conta").hidden = false;
 else {
-  try { [cat, builds, shiny, niveis, habs, inv] = await Promise.all([listar(), lerBuilds(u.chave), lerShiny(u.chave).catch(() => ({})), lerNiveis(u.chave), lerEscolhasHab(u.chave), lerInventario(u.chave).catch(() => ({itens: {}, itensEq: {}}))]); $("abas-meus").hidden = false; lista(); perfil(); }
+  try { [cat, builds, shiny, niveis, habs, inv] = await Promise.all([listar(), lerBuilds(u.chave), lerShiny(u.chave).catch(() => ({})), lerNiveis(u.chave), lerEscolhasHab(u.chave), lerInventario(u.chave).catch(() => ({itens: {}, itensEq: {}}))]); podeShiny = await podeEscolherShiny(u.chave).catch(() => false); $("abas-meus").hidden = false; lista(); perfil(); }
   catch(e) { aviso("Não foi possível carregar os dados. Confira o firebaseConfig e as regras do Firestore."); }
 }

@@ -600,3 +600,132 @@ body.pagina-sala.em-batalha {
 .so-shiny:has(input:checked) { background: var(--yellow); border-color: #c9a000; box-shadow: 0 2px 0 #c9a000; }
 .so-shiny:has(input:disabled) { opacity: .55; cursor: not-allowed; }
 .so-shiny[hidden] { display: none; }
+
+
+/* ==========================================================
+   BATALHA NO CELULAR — a tela sempre ocupa exatamente a tela
+   do aparelho, sem rolagem vertical nem horizontal.
+   O campo (flex:1) é a única parte que encolhe/estica; o resto
+   (cabeçalho, sala, equipe, comandos) fica compacto.
+   ========================================================== */
+
+@media (max-width: 640px) {
+    html:has(body.em-batalha) {
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
+    body.pagina-sala.em-batalha {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        margin: 0;
+        padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+        overflow: hidden;
+        line-height: 1.25;
+        overscroll-behavior: none;
+    }
+
+    body.pagina-sala.em-batalha #conteudo {
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
+        margin: 4px 0 0;
+        overflow: hidden;
+    }
+
+    .em-batalha .batalha {
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
+        gap: 4px;
+    }
+
+    .em-batalha .batalha > * { min-width: 0; max-width: 100%; }
+
+    /* cabeçalho */
+    .em-batalha .topo { padding: 3px 8px; border-radius: 12px; }
+    .em-batalha .topo img { width: 28px; height: 28px; }
+    .em-batalha .topo h1 { font-size: 1.1rem; }
+    .em-batalha .btn-menu { width: 36px; height: 36px; font-size: 1.25rem; }
+
+    /* sala + equipe adversária */
+    .em-batalha .sala-id { font-size: .78rem; line-height: 1.2; }
+    .em-batalha .eq-adv { padding: 3px 8px; }
+    .em-batalha .eq-adv .mini { width: min(34px, 10.5vw); height: min(34px, 10.5vw); }
+    .em-batalha .campo-info { margin: 0; font-size: .72rem; }
+
+    /* campo: ocupa todo o espaço que sobrar (sem altura mínima fixa) */
+    body.pagina-sala.em-batalha .campo {
+        flex: 1 1 0;
+        min-height: 0;
+        width: 100%;
+        border-radius: 16px;
+    }
+
+    .hud { width: min(60%, 250px); }
+    .hud.adv { top: 6px; left: 6px; }
+    .hud.eu { bottom: 6px; right: 6px; }
+    .hud .vida { padding: 4px 8px 5px; }
+    .hud .vida-topo > b { font-size: .85rem; }
+    .hp-linha { margin-top: 3px; }
+    .hp-linha .barra { height: 10px; }
+    .bolas { margin-top: 3px; }
+    .bolas i { width: 8px; height: 8px; }
+    .hud .vida .tipo { font-size: .6rem; padding: 0 6px; }
+
+    /* painel de comandos compacto */
+    .em-batalha .acao {
+        flex: 0 0 auto;
+        min-height: 0;
+        max-height: 44dvh;
+        padding: 8px;
+        gap: 4px;
+        border-radius: 14px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+    .em-batalha .acao::-webkit-scrollbar { display: none; }
+    .em-batalha .acao .dica { margin: 0; font-size: .74rem; line-height: 1.2; }
+    .em-batalha .acao .texto { font-size: .95rem; }
+    .em-batalha .acao .ultima { font-size: .72rem; -webkit-line-clamp: 1; }
+    .mega-btn, .z-btn { margin: 0; gap: 4px; }
+    .mega-btn button, .z-btn button { padding: 4px 10px; font-size: .82rem; }
+
+    /* golpes: duas colunas, tipo + nome lado a lado, sem estourar a largura */
+    .em-batalha .acao .golpes-btn,
+    .em-batalha .acao .trocas { grid-template-columns: 1fr 1fr; gap: 5px; }
+    .em-batalha .acao .golpes-btn button {
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 6px 6px 12px;
+        font-size: .82rem;
+        min-height: 36px;
+    }
+    .em-batalha .acao .golpes-btn button span { line-height: 1.1; overflow-wrap: break-word; }
+    .em-batalha .acao .golpes-btn .tipo { font-size: .54rem; padding: 0 5px; }
+    .em-batalha .acao .trocas button { padding: 5px 6px; font-size: .8rem; }
+}
+
+/* celulares de tela baixa (ou deitados): enxuga ainda mais */
+@media (max-width: 640px) and (max-height: 700px) {
+    .hud .hab-linha { display: none; }
+    .hud .vida-topo > .estado { display: none; }
+    .em-batalha .acao .golpes-btn button { min-height: 32px; padding-top: 4px; padding-bottom: 4px; }
+}
+
+/* telas muito estreitas: golpes um embaixo do outro seria alto demais, mantém 2 colunas */
+@media (max-width: 380px) {
+    .em-batalha .acao .golpes-btn,
+    .em-batalha .acao .trocas { grid-template-columns: 1fr 1fr; }
+}
+
+/* opção "✨ Shiny" em Meus Pokémon (só aparece para contas com permissão) */
+.shiny-opcao { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin-top: 8px; padding: 4px 12px; border-radius: 999px; background: #fff8d6; border: 2px solid #f0d36a; font-weight: 700; font-size: .85rem; cursor: pointer; transition: background .15s, border-color .15s; }
+.shiny-opcao input { width: auto; margin: 0; cursor: pointer; accent-color: #c9a000; }
+.shiny-opcao:hover { background: #fff1b3; }
+.shiny-opcao:has(input:checked) { background: var(--yellow); border-color: #c9a000; box-shadow: 0 2px 0 #c9a000; }
+.shiny-opcao:has(input:disabled) { opacity: .6; cursor: progress; }

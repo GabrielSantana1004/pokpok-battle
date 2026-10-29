@@ -47,6 +47,28 @@ export async function lerShiny(chave) {
   await updateDoc(ref(chave), {shiny: mapa});
   return mapa;
 }
+// Permissão especial: a conta escolhe quais Pokémon dela são shiny (liga e desliga quando quiser, em "Meus Pokémon").
+// A permissão é marcada à mão no Firestore: usuarios/<nick>.permissoes = { shinyLivre: true }. Só visual.
+export async function podeEscolherShiny(chave) {
+  const s = await getDoc(ref(chave));
+  return s.exists() && !!s.data().permissoes?.shinyLivre;
+}
+// Usado na tela de admin: dá ou tira a permissão (a conta precisa já existir).
+export const definirPermissaoShiny = (chave, ligado) => runTransaction(db, async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Confira o nickname.");
+  tx.update(ref(chave), {"permissoes.shinyLivre": !!ligado});
+  return !!ligado;
+});
+export const definirShiny = (chave, pokemonId, ligado) => runTransaction(db, async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
+  if (!us.data().permissoes?.shinyLivre) throw new Error("Esta conta não tem permissão para escolher shiny.");
+  const shiny = {...(us.data().shiny || {})};
+  if (ligado) shiny[pokemonId] = true; else delete shiny[pokemonId];
+  tx.update(ref(chave), {shiny});
+  return shiny;
+});
 export async function criarConta(nick, senha) {
   nick = nick.trim();
   if (!/^[\p{L}\p{N}_.-]{3,20}$/u.test(nick)) throw new Error("O nickname precisa ter de 3 a 20 caracteres (letras, números, _ . -).");
