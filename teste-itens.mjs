@@ -190,7 +190,7 @@ t("Ordem: Quick Claw, Lagging Tail, Custap Berry", () => {
   let s = duelo(null, null, ["tackle"], ["tackle"], ["Normal"], ["Normal"], {spe: 10, ...com("lagging-tail")}, {spe: 10}); let primeiro = 0;
   for (let i = 0; i < 100; i++) { s = duelo(null, null, ["tackle"], ["tackle"], ["Normal"], ["Normal"], {spe: 100, ...com("lagging-tail")}, {spe: 10}); go(s, "tackle", "tackle"); if (/^A /.test(s.log.find(x => /usou/.test(x)))) primeiro++; } assert.equal(primeiro, 0, "Lagging Tail sempre por último");
   let qc = 0; for (let i = 0; i < 1000; i++) { s = duelo(null, null, ["tackle"], ["tackle"], ["Normal"], ["Normal"], {spe: 10, ...com("quick-claw")}, {spe: 200}); go(s, "tackle", "tackle"); if (/^A /.test(s.log.find(x => /usou/.test(x)))) qc++; } assert.ok(qc > 140 && qc < 270, "Quick Claw ~20%: " + qc);
-  s = duelo(null, null, ["tackle"], ["tackle"], ["Normal"], ["Normal"], {spe: 10, ...com("custap-berry")}, {spe: 200}); A(s).hpAtual = Math.floor(A(s).hp * 0.2); go(s, "tackle", "tackle"); assert.equal(A(s).vol.custap, true);
+  s = duelo(null, null, ["tackle"], ["tackle"], ["Normal"], ["Normal"], {spe: 10, ...com("custap-berry")}, {spe: 200, atk: 1}); A(s).hpAtual = Math.floor(A(s).hp * 0.2); go(s, "tackle", "tackle"); assert.equal(A(s).vol.custap, true);
   s.log = []; go(s, "tackle", "tackle"); assert.match(s.log.find(x => /usou/.test(x)), /^A /, "Custap: age primeiro"); assert.equal(A(s).vol.custap, false);
 });
 t("Precisão, crítico, flinch, Power Herb, Binding Band", () => {

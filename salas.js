@@ -34,7 +34,7 @@ const mudar = (codigo, fn) => runTransaction(db, async tx => {
   const s = snap.data(); fn(s); tx.set(ref(codigo), s);
 });
 
-// Sala contra bot: o Jogador 2 é o bot, já com 6 Pokémon aleatórios (4 golpes aleatórios cada) e equipe confirmada
+// Sala contra bot: o Jogador 2 é o bot, já com 6 Pokémon aleatórios (reduzidos ao tamanho da sua equipe ao confirmá-la) (4 golpes aleatórios cada) e equipe confirmada
 async function jogadorBot(nivelBot = "normal") {
   const {equipe, mapa} = await sortearEquipe(await listar(), 6, undefined, undefined, undefined, () => itemDeBot(nivelBot)); // itens do bot: mais comuns no fácil, mais raros no difícil
   return {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: equipe.map(p => copiaBot(p, mapa))};
@@ -101,6 +101,7 @@ export const confirmarEquipe = (codigo, papel, equipe, mapa = {}) => mudar(codig
   if (!equipe.length || equipe.length > 6) throw new Error("A equipe precisa ter de 1 a 6 Pokémon.");
   eu.equipe = equipe.map(p => copiaPokemon(p, mapa)); eu.ativo = 0; eu.confirmada = true; // cópia congelada na sala
   if (s.bot && !s.torre && papel === "1") { // bot comum: o nível de todo o time dele acompanha o seu (fácil: menor · normal: média · difícil: maior)
+    s.j["2"].equipe = s.j["2"].equipe.slice(0, eu.equipe.length); // o bot luta com o mesmo número de Pokémon que você (quem tem 1 só não enfrenta 6)
     const lvl = nivelDoBot(s.botNivel || "facil", eu.equipe.map(p => p.nivel || 50));
     for (const p of s.j["2"].equipe) reescalar(p, lvl);
   }

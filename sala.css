@@ -772,3 +772,33 @@ button[onclick^="rmEq"]:hover {
 /* Clima, terreno e lados do campo */
 .campo-info { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 4px 0; font-size: .8rem; }
 .campo-info .lado { font-weight: 700; margin-left: 6px; }
+
+/* tela de captura (por cima da batalha) */
+body.cap-aberta { overflow: hidden; }
+.cap-tela { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 14px 14px 18px; gap: 10px; color: #fff; overflow-y: auto;
+  background: linear-gradient(#1b2a6b 0%, #4a79c9 38%, #8fd0ff 52%, #5aa84a 52.1%, #356f2e 100%); }
+.cap-tela.lendario { background: linear-gradient(#2b1450 0%, #6a3fb5 38%, #f0c35a 52%, #5a8f4a 52.1%, #2e5a2e 100%); }
+.cap-topo { font-weight: 800; font-size: 1.25rem; text-shadow: 0 2px 4px rgba(0,0,0,.5); }
+.cap-palco { position: relative; width: min(100%, 420px); height: 320px; flex: none; }
+.cap-sombra { position: absolute; left: 50%; bottom: 40px; width: 180px; height: 26px; margin-left: -90px; border-radius: 50%; background: rgba(0,0,0,.28); }
+.cap-pokemon { position: absolute; left: 0; right: 0; bottom: 52px; display: flex; justify-content: center; align-items: flex-end; transform-origin: 50% 100%; animation: cap-respira 2.4s ease-in-out infinite; }
+.cap-pokemon .sprite { max-height: 240px; margin-bottom: 0; filter: drop-shadow(0 6px 4px rgba(0,0,0,.35)); }
+@keyframes cap-respira { 50% { translate: 0 -6px; } }
+.cap-bola { position: absolute; left: 50%; bottom: 14px; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; border: 3px solid #1a1a1a; opacity: 0; box-sizing: border-box;
+  background: linear-gradient(#e53935 0 44%, #1a1a1a 44% 56%, #fff 56%); box-shadow: 0 3px 6px rgba(0,0,0,.4); }
+.cap-bola::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; border: 3px solid #1a1a1a; box-sizing: border-box; }
+.cap-bola.capturada::after { background: #ffd54a; box-shadow: 0 0 10px #ffd54a; }
+.cap-bola.aberta { filter: brightness(2.2); }
+.cap-efeito { position: absolute; left: 0; right: 0; top: 80px; text-align: center; font-size: 2rem; opacity: 0; pointer-events: none; }
+.cap-info { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.cap-caixa { width: min(100%, 460px); min-height: 84px; padding: 12px 16px; border-radius: 12px; background: rgba(12,16,40,.92); border: 3px solid #fff; box-shadow: 0 0 0 3px #1a1a1a, 0 6px 14px rgba(0,0,0,.4); font-size: 1.05rem; line-height: 1.4; }
+.cap-texto { margin: 0; }
+.cap-botoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.cap-botoes button, .cap-link { padding: 11px 20px; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: none; }
+.cap-lancar { background: #e53935; color: #fff; border: 2px solid #fff; }
+.cap-soltar { background: rgba(0,0,0,.35); color: #fff; border: 2px solid rgba(255,255,255,.6); }
+.cap-link { background: #ffd54a; color: #222; border: 2px solid #fff; }
+.cap-botoes .primario { background: #1e6bd6; color: #fff; border: 2px solid #fff; }
+.cap-botoes .cap-link { color: #222 !important; }
+.cap-botoes .cap-lancar { background: #e53935; }
+.cap-botoes .cap-link { background: #ffd54a !important; }
