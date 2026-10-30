@@ -3,6 +3,7 @@ import { getFirestore, doc, getDoc, setDoc, runTransaction, onSnapshot, Timestam
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { itemDeBot } from "./itens.js";
 import { sortearEquipe } from "./bot.js";
+import { ehLendario } from "./pokemons.js";
 import { BOT, botEscolha, botTroca } from "./botia.js";
 import { listar } from "./firebase.js";
 import { usuario, refUsuario, VITORIAS_POR_REVIVER } from "./usuarios.js";
@@ -35,13 +36,15 @@ const mudar = (codigo, fn) => runTransaction(db, async tx => {
 });
 
 // Sala contra bot: o Jogador 2 é o bot, já com 6 Pokémon aleatórios (reduzidos ao tamanho da sua equipe ao confirmá-la) (4 golpes aleatórios cada) e equipe confirmada
+// Catálogo para montar adversários: sem os lendários/míticos da lista (eles só vêm como prêmio da torre)
+const semLendarios = async () => (await listar()).filter(p => !ehLendario(p.nome));
 async function jogadorBot(nivelBot = "normal") {
-  const {equipe, mapa} = await sortearEquipe(await listar(), 6, undefined, undefined, undefined, () => itemDeBot(nivelBot)); // itens do bot: mais comuns no fácil, mais raros no difícil
+  const {equipe, mapa} = await sortearEquipe(await semLendarios(), 6, undefined, undefined, undefined, () => itemDeBot(nivelBot)); // itens do bot: mais comuns no fácil, mais raros no difícil
   return {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: equipe.map(p => copiaBot(p, mapa))};
 }
 // Torre: o adversário é um Pokémon por vez; a fila dos próximos (30 andares) já fica pronta na sala
 async function jogadorTorre() {
-  const fila = await filaTorre(await listar(), sortearEquipe);
+  const fila = await filaTorre(await semLendarios(), sortearEquipe);
   if (!fila.length) throw new Error("Não consegui montar a torre: o catálogo está vazio ou sem golpes sincronizados.");
   const primeiro = fila.shift();
   return {bot: {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: [primeiro]}, torre: {n: 0, andar: 1, total: fila.length + 1, fila}};
@@ -193,7 +196,7 @@ export const contabilizarResultado = (codigo, papel) => runTransaction(db, async
   const d = us.data(), venceu = s.vencedor === papel, ganho = venceu ? (s.bot ? xpVitoriaBot(s.botNivel || "facil") : XP_VITORIA) : XP_DERROTA; // contra o bot, a vitória rende 10/20/40 XP (fácil/normal/difícil)
   const xp = xpDe(d) + ganho, nivelAntes = infoNivel(xpDe(d)).nivel, nivelDepois = infoNivel(xp).nivel;
   const vit = (d.vitorias || 0) + (venceu ? 1 : 0), reviver = venceu && vit % VITORIAS_POR_REVIVER === 0; // a cada 20 vitórias, 1 Reviver
-  const alvos = s.bot && venceu ? (s.j[papel === "1" ? "2" : "1"]?.equipe || []).filter(p => p?.id) : []; // vitória contra o bot: 1 dos 6 Pokémon dele pode ser capturado
+  const alvos = s.bot && venceu ? (s.j[papel === "1" ? "2" : "1"]?.equipe || []).filter(p => p?.id && !ehLendario(p.nome)) : []; // vitória contra o bot: 1 dos 6 Pokémon dele pode ser capturado
   const captura = alvos.length ? {tipo: "bot", esp: String(alvos[Math.floor(Math.random() * alvos.length)].id), sala: codigo} : null;
   tx.update(refUsuario(eu.chave), {xp, ...(captura ? {capturas: [captura]} : {}), ...(venceu ? {vitorias: vit, pocoes: (d.pocoes || 0) + 1, ...(reviver ? {revives: (d.revives || 0) + 1} : {})} : {})});
   eu.resultado = {xp: ganho, nivelNovo: nivelDepois > nivelAntes ? nivelDepois : null};
