@@ -1,4 +1,5 @@
 // Tela de batalha: miniaturas das equipes, caixas de vida, campo com os sprites e a caixa de ação (golpes, megaevolução, trocas).
+import { htmlCaptura } from "./sala-captura.js";
 import { escolher, trocaForcada } from "./salas.js";
 import { esc } from "./common.js";
 import { ativoDe, vivos, precisaTrocar, adv, megaBloqueada, nomeCond, nomeStat, NOME_CLIMA, NOME_TERRENO, NOME_VOL, nomeTela, nomeArmadilha } from "./motor.js";
@@ -72,10 +73,10 @@ function caixaAcao(s) {
     if (s.torre) { // fim da torre: só XP (sem vitória, poção nem ranking)
       const T = s.torre, der = `${T.n} ${T.n === 1 ? "Pokémon derrotado" : "Pokémon derrotados"}`, quem = T.completa ? `🏆 Você chegou ao topo da torre! ${der}.` : T.encerrada ? `Você deixou a torre com ${der}.` : `Fim da subida: seu time caiu depois de ${der}.`;
       const x = !jogador ? "" : res ? xpTxt : ` ⭐ ${xpTorreTotal(T.n)} XP a receber…`;
-      return `<div class="acao fim" data-quem="${jogador ? (T.completa ? "eu" : "adv") : ""}"><p class="texto">${quem}${x}</p>${ult}<button onclick="sairSala()">Sair da torre</button></div>`;
+      return `<div class="acao fim" data-quem="${jogador ? (T.completa ? "eu" : "adv") : ""}"><p class="texto">${quem}${x}</p>${jogador ? htmlCaptura() : ""}${ult}<button onclick="sairSala()">Sair da torre</button></div>`;
     }
     const t = !s.vencedor ? "A batalha terminou: um dos jogadores saiu." : s.vencedor === "empate" ? "Empate! Os dois jogadores ficaram sem Pokémon." + xpTxt : !jogador ? `${s.bot && s.vencedor === "2" ? "O bot" : "Jogador " + s.vencedor} venceu!` : s.vencedor === papel ? "Você venceu a batalha!" + premio + xpTxt : "Você perdeu a batalha." + xpTxt;
-    return `<div class="acao fim" data-quem="${jogador && s.vencedor && s.vencedor !== "empate" ? (s.vencedor === papel ? "eu" : "adv") : ""}"><p class="texto">${t}</p>${ult}<button onclick="sairSala()">Sair da sala</button></div>`;
+    return `<div class="acao fim" data-quem="${jogador && s.vencedor && s.vencedor !== "empate" ? (s.vencedor === papel ? "eu" : "adv") : ""}"><p class="texto">${t}</p>${jogador ? htmlCaptura() : ""}${ult}<button onclick="sairSala()">Sair da sala</button></div>`;
   }
   if (!jogador) return `<div class="acao"><p class="texto">${precisaTrocar(s.j["1"]) || precisaTrocar(s.j["2"]) ? "Um jogador está escolhendo o próximo Pokémon…" : "Você está assistindo."}</p>${ult}</div>`;
   const eu = s.j[papel], e = s.escolhas[papel];

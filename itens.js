@@ -153,8 +153,8 @@ export function extensao(P, tipo, nome) {
   return 0;
 }
 
-// ----- caixas: 30% cristais Z (1 a 3) · 70% cinco itens; raridade sorteada por item (60% comum · 30% incomum · 10% raro) -----
-export const CAIXA = {chanceCristal: 0.3, cristaisMin: 1, cristaisMax: 3, itens: 5};
+// ----- caixas: sempre 5 coisas, cada uma item ou cristal Z. Combinações (cristais: peso): 0 → 5 itens · 1 → 4 itens + 1 cristal · 2 → 3 itens + 2 cristais · 3 → 2 itens + 3 cristais. Raridade sorteada por item (60% comum · 30% incomum · 10% raro) -----
+export const CAIXA = {total: 5, pesosCristais: {0: 1, 1: 1, 2: 1, 3: 1}, chancePokebola: 0.2}; // além das 5 coisas, 20% de chance de vir uma Pokébola (6º item) com um Pokémon aleatório
 export function sortearItem(rng = Math.random, pesos = Object.fromEntries(Object.entries(TIERS).map(([k, v]) => [k, v.peso]), ), pool = itensDeCaixa) {
   const total = Object.values(pesos).reduce((a, b) => a + b, 0); let r = rng() * total, tier = "comum";
   for (const [k, p] of Object.entries(pesos)) { if (r < p) { tier = k; break; } r -= p; }
@@ -162,8 +162,11 @@ export function sortearItem(rng = Math.random, pesos = Object.fromEntries(Object
   return usa[Math.floor(rng() * usa.length)];
 }
 export function sortearCaixa(rng = Math.random) {
-  if (rng() < CAIXA.chanceCristal) return {tipo: "cristais", n: CAIXA.cristaisMin + Math.floor(rng() * (CAIXA.cristaisMax - CAIXA.cristaisMin + 1))};
-  return {tipo: "itens", itens: Array.from({length: CAIXA.itens}, () => sortearItem(rng).id)};
+  const pesos = Object.entries(CAIXA.pesosCristais), soma = pesos.reduce((a, [, p]) => a + p, 0);
+  let r = rng() * soma, cristais = Number(pesos[0][0]);
+  for (const [n, p] of pesos) { if (r < p) { cristais = Number(n); break; } r -= p; }
+  const itens = Array.from({length: CAIXA.total - cristais}, () => sortearItem(rng).id);
+  return {cristais, itens, pokebola: rng() < CAIXA.chancePokebola};
 }
 // itens dos bots: 'facil' 30% de chance e só comuns · 'normal' 60% comuns/incomuns · 'dificil' sempre, qualquer raridade · 'torre' 50% · 'chefe' sempre e raros
 const BOT_MODO = {facil: [0.3, {comum: 80, incomum: 20}], normal: [0.6, {comum: 50, incomum: 40, raro: 10}], dificil: [1, {comum: 30, incomum: 45, raro: 25}], torre: [0.5, {comum: 50, incomum: 40, raro: 10}], chefe: [1, {incomum: 30, raro: 70}]};

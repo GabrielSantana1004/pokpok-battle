@@ -5,9 +5,10 @@ import { montarTimes } from "./meus-times.js";
 import { lerStatus, lerNiveis, subirNivelPokemon } from "./usuarios.js";
 import { nivelDoPokemon } from "./nivel.js";
 import { REGRAS, statsFinais } from "./regras.js";
-import { usuario, criarConta, entrarConta, lerBuilds, salvarBuild, lerShiny, lerEscolhasHab, salvarEscolhaHab, podeEscolherShiny, definirShiny } from "./usuarios.js";
+import { usuario, criarConta, entrarConta, lerBuilds, salvarBuild, lerEscolhasHab, salvarEscolhaHab, podeEscolherShiny, definirShiny } from "./usuarios.js";
 import { habilidadeEscolhida, marcaHabilidade, estadoHabilidade } from "./habilidades.js";
-import { lerInventario, abrirCaixa, equiparItem } from "./usuarios.js";
+import { lerInventario, abrirCaixa, equiparItem, lerPokemons, inicialEscolhido, escolherInicial } from "./usuarios.js";
+import { instancias, shinyPorInstancia, somaIvs, IV_STATS, IV_MAX, acharIniciais, sortearPokemonAleatorio } from "./pokemons.js";
 import { ITENS, TIERS, itemPorId, copiasLivres, marcaItem } from "./itens.js";
 nav();
 const $ = id => document.getElementById(id);
@@ -15,7 +16,7 @@ const CAT = {fisico: "Físico", especial: "Especial", status: "Status"};
 const badge = t => `<span class="tipo t-${esc(t)}">${esc(t)}</span>`;
 const aviso = t => { $("erro").textContent = t || ""; };
 const MAX = 4;
-let u = usuario(), podeShiny = false, inv = {itens: {}, itensEq: {}}, caixaRes = "", cat = [], builds = {}, shiny = {}, habs = {}, niveis = {}, pontos = 0, atual = null, marcados = [], recado = "";
+let u = usuario(), todas = [], podeShiny = false, inv = {itens: {}, itensEq: {}}, caixaRes = "", cat = [], builds = {}, shiny = {}, habs = {}, niveis = {}, pontos = 0, atual = null, marcados = [], recado = "";
 
 // ---------- conta ----------
 async function conta(acao) {
@@ -36,7 +37,8 @@ function lista() {
   const com = cat.filter(p => p.aprende?.length), sem = cat.length - com.length;
   const prontos = com.filter(p => golpesDe(p).length).length;
   $("resumo").innerHTML = `${esc(recado)} <b>${prontos}</b> de ${com.length} Pokémon prontos para batalha (com golpes escolhidos).` +
-    (sem ? ` ${sem} Pokémon do catálogo ainda não têm a lista de golpes: abra <a href="golpes.html">Atualizar golpes</a> e use o segundo botão.` : "");
+    (sem ? ` ${sem} Pokémon seu${sem > 1 ? "s" : ""} ainda não ${sem > 1 ? "têm" : "tem"} a lista de golpes: abra <a href="golpes.html">Atualizar golpes</a> e use o segundo botão.` : "") +
+    (cat.length ? "" : " Você ainda não tem Pokémon.");
   grade();
 }
 function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica fora desta área e não perde o foco
@@ -50,6 +52,7 @@ function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica f
       <img class="foto" data-pokemon="${esc(p.nome)}"${shiny[p.id] ? ' data-shiny="1"' : ""} alt="${esc(p.nome)}" loading="lazy">
       <h3>${esc(p.nome)}${shiny[p.id] ? " ✨" : ""} <small class="nv-pk">Nv ${nivelDoPokemon(niveis, p.id)}</small>${p.megas?.length ? ' <small title="Pode megaevoluir: ' + esc(p.megas.map(m => m.nome).join(", ")) + '">⚡ Mega</small>' : ""}</h3>
       <div class="tipos">${p.tipos.map(badge).join("")}</div>
+      ${p.ivs ? `<p class="hab-card" title="${esc(IV_STATS.map(k => `${k.toUpperCase()} ${p.ivs[k]}`).join(" · "))}">📊 IVs ${somaIvs(p.ivs)}/${IV_STATS.length * IV_MAX}</p>` : ""}
       ${p.habilidades?.length ? `<p class="hab-card">🧬 ${esc(habilidadeEscolhida(p, habs).nome)}${inv.itensEq[p.id] && itemPorId(inv.itensEq[p.id]) ? ` · 🎒 ${esc(itemPorId(inv.itensEq[p.id]).nome)}` : ""}</p>` : ""}
       <ul class="golpes">${mv.length ? mv.map(m => `<li>${badge(m.tipo)} ${esc(m.nome)} <small>${CAT[m.cat] || m.cat}</small></li>`).join("") : "<li><small>Sem golpes escolhidos</small></li>"}</ul>
       <div class="acoes"><button class="primario" onclick="abrir('${esc(p.id)}')">${mv.length ? "Editar golpes" : "Escolher golpes"}</button>
@@ -172,8 +175,12 @@ function itemSelect() { // só aparecem os itens que a conta tem (com cópia liv
 async function abrirUmaCaixa() {
   aviso();
   try {
-    const r = await abrirCaixa(u.chave);
-    caixaRes = r.tipo === "cristais" ? `<b>💎 ${r.n} cristal${r.n > 1 ? "is" : ""} Z!</b>` : `<b>📦 Itens:</b> ${r.itens.map((id, k) => { const i = itemPorId(id); return `<span class="caixa-item">${nomeTier(i)} ${esc(i.nome)}${r.jaTinha[k] ? " <small>(+1 cópia)</small>" : " <small>(novo!)</small>"}</span>`; }).join(" ")}`;
+    const r = await abrirCaixa(u.chave, () => sortearPokemonAleatorio(todas)?.id);
+    const parteCristais = r.cristais ? `<b>💎 ${r.cristais} cristal${r.cristais > 1 ? "is" : ""} Z!</b> ` : "";
+    const parteItens = r.itens.length ? `<b>📦 ${r.itens.length} iten${r.itens.length > 1 ? "s" : ""}:</b> ${r.itens.map((id, k) => { const i = itemPorId(id); return `<span class="caixa-item">${nomeTier(i)} ${esc(i.nome)}${r.jaTinha[k] ? " <small>(+1 cópia)</small>" : " <small>(novo!)</small>"}</span>`; }).join(" ")}` : "";
+    const partePokebola = r.pokemon ? ` <b>🎁 Uma Pokébola com ${esc(todas.find(p => p.id === r.pokemon.esp)?.nome || "um Pokémon")}${r.pokemon.shiny ? " ✨ shiny" : ""}!</b> <small>(IVs ${somaIvs(r.pokemon.ivs)}/${IV_STATS.length * IV_MAX}, já está nos seus Pokémon)</small>` : "";
+    caixaRes = parteCristais + parteItens + partePokebola;
+    if (r.pokemon) { const regs = await lerPokemons(u.chave); cat = instancias(todas, regs); shiny = shinyPorInstancia(regs); if (!$("lista-pk").hidden) lista(); }
     inv = await lerInventario(u.chave); await perfil();
   } catch(e) { aviso(e.message || "Não foi possível abrir a caixa."); }
 }
@@ -237,9 +244,32 @@ $("aba-pk").onclick = () => aba("pk");
 $("aba-times").onclick = () => aba("times");
 $("aba-perfil").onclick = () => aba("perfil");
 
+// ---------- escolha do inicial (conta nova): 1 entre os 27, na forma final e no nível 50 ----------
+function telaInicial(especies) {
+  const linhas = acharIniciais(especies); let sel = null;
+  const sec = $("inicial"); sec.hidden = false;
+  const desenhar = () => {
+    sec.innerHTML = `<h2>Escolha o seu Pokémon inicial</h2>
+      <p>Cada conta começa com 1 dos 27 iniciais, já na forma final e no nível ${REGRAS.nivel}. A escolha vale uma vez só. Os outros Pokémon você conquista jogando.</p>
+      ${linhas.map((l, g) => `<h4 class="inicial-ger">Geração ${g + 1}</h4><div class="inicial-linha">${l.map(c => c.esp
+        ? `<button type="button" class="inicial-op${sel === c.esp.id ? " marcada" : ""}" data-esp="${esc(c.esp.id)}"><img class="foto mini" data-pokemon="${esc(c.esp.nome)}" alt="" loading="lazy"><b>${esc(c.esp.nome)}</b><span class="tipos">${c.esp.tipos.map(badge).join("")}</span></button>`
+        : `<button type="button" class="inicial-op" disabled title="Não está no catálogo"><b>${esc(c.nome)}</b><small>fora do catálogo</small></button>`).join("")}</div>`).join("")}
+      <div class="acoes-editor"><button id="confirmar-ini" class="primario" ${sel ? "" : "disabled"}>${sel ? `Escolher ${esc(linhas.flat().find(c => c.esp?.id === sel).nome)}` : "Toque em um Pokémon"}</button></div>`;
+    carregarImagens(sec);
+    sec.querySelectorAll("[data-esp]").forEach(b => { b.onclick = () => { sel = b.dataset.esp; desenhar(); }; });
+    $("confirmar-ini").onclick = async () => {
+      const nome = linhas.flat().find(c => c.esp?.id === sel)?.nome; if (!nome || !confirm(`Escolher ${nome} como seu inicial? Não dá para trocar depois.`)) return;
+      $("confirmar-ini").disabled = true; aviso();
+      try { await escolherInicial(u.chave, sel); location.reload(); }
+      catch(e) { aviso(e.message || "Não foi possível salvar o inicial."); $("confirmar-ini").disabled = false; }
+    };
+  };
+  desenhar();
+}
+
 // ---------- início ----------
 if (!u) $("conta").hidden = false;
 else {
-  try { [cat, builds, shiny, niveis, habs, inv] = await Promise.all([listar(), lerBuilds(u.chave), lerShiny(u.chave).catch(() => ({})), lerNiveis(u.chave), lerEscolhasHab(u.chave), lerInventario(u.chave).catch(() => ({itens: {}, itensEq: {}}))]); podeShiny = await podeEscolherShiny(u.chave).catch(() => false); $("abas-meus").hidden = false; lista(); perfil(); }
+  try { let especies, regs; [especies, regs, builds, niveis, habs, inv] = await Promise.all([listar(), lerPokemons(u.chave), lerBuilds(u.chave), lerNiveis(u.chave), lerEscolhasHab(u.chave), lerInventario(u.chave).catch(() => ({itens: {}, itensEq: {}}))]); todas = especies; cat = instancias(especies, regs); shiny = shinyPorInstancia(regs); podeShiny = await podeEscolherShiny(u.chave).catch(() => false); if (!Object.keys(regs).length && !(await inicialEscolhido(u.chave))) telaInicial(especies); else { $("abas-meus").hidden = false; lista(); perfil(); } }
   catch(e) { aviso("Não foi possível carregar os dados. Confira o firebaseConfig e as regras do Firestore."); }
 }

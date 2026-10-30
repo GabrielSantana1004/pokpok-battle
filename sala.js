@@ -5,7 +5,8 @@ import { uid, sessao, ouvir, sair, contabilizarResultado, encerrarTorre } from "
 import { listar } from "./firebase.js";
 import { esc } from "./common.js";
 import { carregarImagens, carregarSprites } from "./imagem.js";
-import { usuario, lerBuilds, lerStatus, lerShiny, lerTimes, lerNiveis, lerEscolhasHab, lerInventario } from "./usuarios.js";
+import { usuario, descartarCaptura, lerBuilds, lerStatus, lerPokemons, lerTimes, lerNiveis, lerEscolhasHab, lerInventario } from "./usuarios.js";
+import { instancias } from "./pokemons.js";
 import { itemEquipado } from "./itens.js";
 import { habilidadeEscolhida } from "./habilidades.js";
 import { nivelDoPokemon, xpTorreTotal } from "./nivel.js";
@@ -14,6 +15,7 @@ import { com, enfileirar, pararReplay } from "./sala-replay.js";
 import { telaEquipe } from "./sala-equipe.js";
 import { telaBatalha } from "./sala-batalha.js";
 import { renderMenu } from "./sala-menu.js";
+import { iniciarCaptura, capturaPendente } from "./sala-captura.js";
 import { aplicarFx, reiniciarFx } from "./sala-fx.js";
 
 if (!ses) location.replace("index.html");
@@ -36,7 +38,7 @@ function desenhar() {
   carregarSprites($("conteudo"));
   if (emBatalha) aplicarFx();
 }
-function render() { com(desenhar); if (!E.reproz) checarResultado(); }
+function render() { com(desenhar); if (!E.reproz) { checarResultado(); iniciarCaptura(); } }
 E.render = render;
 
 // ----- vitória: o vencedor (quando a reprodução termina) recebe +1 vitória e +1 poção (e Reviver a cada 20) -----
@@ -57,9 +59,11 @@ function checarResultado(forcar = false) { // quando a batalha acaba (e a reprod
 
 async function sairSala() {
   const T = E.s?.torre, naTorre = T && E.s.fase === "batalha";
-  if (!confirm(naTorre ? `Sair da torre? A subida termina e você recebe o XP acumulado (${xpTorreTotal(T.n)} XP).` : "Sair da sala? Quando os dois jogadores saírem, a sala é apagada.")) return;
+  const captura = capturaPendente(); // captura não terminada: sair faz o Pokémon ir embora
+  if (!confirm(captura ? "Você ainda não terminou a captura. Se sair agora, o Pokémon vai embora. Sair mesmo?" : naTorre ? `Sair da torre? A subida termina e você recebe o XP acumulado (${xpTorreTotal(T.n)} XP).` : "Sair da sala? Quando os dois jogadores saírem, a sala é apagada.")) return;
   if (naTorre) { try { await encerrarTorre(E.codigo, E.papel); await contabilizarResultado(E.codigo, E.papel); } catch(e) { console.error("Torre não encerrada:", e); } }
   else await checarResultado(true); // quem sai logo depois do fim ainda recebe o resultado
+  if (captura) { try { await descartarCaptura(usuario().chave, E.codigo); } catch(e) {} }
   E.saindo = true; parar(); pararReplay();
   try { await sair(E.codigo, E.papel); } catch(e) { sessao.limpar(); }
   location.replace("index.html");
@@ -71,13 +75,13 @@ async function carregarConta() {
   const u = usuario();
   if (!u) return msg(E.s?.bot ? "" : "Você não está logada(o). Saia da sala e entre na sua conta em Meus Pokémon (ou use a equipe aleatória contra o bot).");
   try {
-    E.meusShiny = await lerShiny(u.chave).catch(() => ({}));
+    const regs = await lerPokemons(u.chave);
     const [b, times, niveis, habs] = await Promise.all([lerBuilds(u.chave), lerTimes(u.chave), lerNiveis(u.chave), lerEscolhasHab(u.chave)]);
     const inv = await lerInventario(u.chave).catch(() => ({itens: {}, itensEq: {}})); // itens segurados escolhidos em Meus Pokémon
     E.times = times; E.niveis = niveis;
-    E.catalogo = E.todos.map(p => { // só entram Pokémon com golpes escolhidos pelo usuário (Meus Pokémon)
+    E.catalogo = instancias(E.todos, regs).map(p => { // os Pokémon da conta; só entram os com golpes escolhidos (Meus Pokémon). p.id = id da instância, com os IVs dela
       const mv = (b[p.id] || []).map(n => p.aprende?.find(g => g.nome === n)).filter(Boolean).slice(0, 4);
-      return mv.length ? {...p, mv, shiny: !!E.meusShiny[p.id], nivel: nivelDoPokemon(niveis, p.id), habilidade: habilidadeEscolhida(p, habs), item: itemEquipado(p.id, inv.itens, inv.itensEq)} : null;
+      return mv.length ? {...p, mv, nivel: nivelDoPokemon(niveis, p.id), habilidade: habilidadeEscolhida(p, habs), item: itemEquipado(p.id, inv.itens, inv.itensEq)} : null;
     }).filter(Boolean);
     if (E.s) render();
   } catch(e) { E.catalogo = []; msg("Não foi possível carregar os seus times."); }

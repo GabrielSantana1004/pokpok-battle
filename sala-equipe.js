@@ -4,7 +4,6 @@ import { golpesDe } from "./golpesdb.js";
 import { sortearEquipe } from "./bot.js";
 import { esc } from "./common.js";
 import { usuario } from "./usuarios.js";
-import { nivelDoPokemon } from "./nivel.js";
 import { E, run, msg, imgAttr } from "./salaestado.js";
 
 const doTime = t => t.ids.map(id => E.catalogo.find(p => p.id === id)).filter(Boolean); // só Pokémon que ainda têm golpes escolhidos
@@ -36,6 +35,6 @@ Object.assign(window, {
   equipeAleatoria: () => { // só em sala contra bot: sorteia 6 Pokémon com 4 golpes cada e já confirma
     if (!confirm("Sortear 6 Pokémon aleatórios e começar a batalha? Depois não dá para trocar a equipe.")) return;
     msg("Sorteando sua equipe…");
-    run((async () => { const {equipe, mapa} = await sortearEquipe(E.todos, 6, usuario() ? p => !!E.meusShiny[p.id] : undefined, usuario() ? p => nivelDoPokemon(E.niveis, p.id) : undefined); await confirmarEquipe(E.codigo, E.papel, equipe, mapa); })());
+    run((async () => { const {equipe, mapa} = await sortearEquipe(E.todos, 6); await confirmarEquipe(E.codigo, E.papel, equipe, mapa); })());
   }
 });

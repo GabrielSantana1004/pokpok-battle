@@ -4,7 +4,7 @@ import { multTipo } from "./common.js";
 export const REGRAS = {
   nivel: 50,   // nível inicial de todo Pokémon (e fixo para os bots); o jogador pode subir os seus até nivelMax
   nivelMax: 100,
-  iv: 31,      // valor individual fixo
+  iv: 31,      // valor individual padrão (bots e Pokémon sem IVs); os Pokémon das contas têm IVs próprios (p.ivs)
   ev: 85,      // pontos de treinamento fixos em cada atributo (natureza neutra)
   stab: 1.5,
   critico: 1.5 // crítico: dois dados com 6 (par de seis)
@@ -12,11 +12,12 @@ export const REGRAS = {
 
 // Atributos finais a partir dos atributos-base (fórmula oficial, natureza neutra)
 export function statsFinais(p, R = REGRAS) {
-  const f = (b, hp) => {
-    const x = Math.floor((2 * b + R.iv + Math.floor(R.ev / 4)) * R.nivel / 100);
+  const f = (k, hp) => {
+    const b = p[k], iv = p.ivs?.[k] ?? R.iv; // IV do atributo (0 a 31); sem IVs = valor padrão
+    const x = Math.floor((2 * b + iv + Math.floor(R.ev / 4)) * R.nivel / 100);
     return hp ? (b === 1 ? 1 : x + R.nivel + 10) : x + 5;
   };
-  return {hp: f(p.hp, true), atk: f(p.atk), def: f(p.def), spa: f(p.spa), spd: f(p.spd), spe: f(p.spe)};
+  return {hp: f("hp", true), atk: f("atk"), def: f("def"), spa: f("spa"), spd: f("spd"), spe: f("spe")};
 }
 
 // Variação de 85% a 100% decidida pela soma dos 2d6 (2 → 85%, 7 → 92%, 12 → 100%)

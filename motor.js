@@ -70,8 +70,8 @@ const estadoInicial = () => ({est: {atk: 0, def: 0, spa: 0, spd: 0, spe: 0, prec
 export function copiaPokemon(p, mapa = {}) {
   const nivel = Math.min(REGRAS.nivelMax, Math.max(1, Math.floor(p.nivel || REGRAS.nivel))), R = {...REGRAS, nivel}; // nível do Pokémon (padrão 50)
   const s = statsFinais(p, R);
-  return {id: p.id, nome: p.nome, tipos: p.tipos, nivel, shiny: !!p.shiny, habilidade: p.habilidade ? {id: p.habilidade.id, nome: p.habilidade.nome} : null, item: p.item ? {id: p.item.id, nome: p.item.nome} : null, itemUsado: null, ...s,
-    megas: (p.megas || []).map(m => { const f = statsFinais({...m, hp: m.hp || p.hp}, R); return {nome: m.nome, slug: m.slug, tipos: m.tipos, habilidade: m.habilidade ? {id: m.habilidade.id, nome: m.habilidade.nome} : null, atk: f.atk, def: f.def, spa: f.spa, spd: f.spd, spe: f.spe}; }), // formas mega, já no nível da batalha
+  return {id: p.id, nome: p.nome, tipos: p.tipos, nivel, ivs: p.ivs || null, shiny: !!p.shiny, habilidade: p.habilidade ? {id: p.habilidade.id, nome: p.habilidade.nome} : null, item: p.item ? {id: p.item.id, nome: p.item.nome} : null, itemUsado: null, ...s,
+    megas: (p.megas || []).map(m => { const f = statsFinais({...m, hp: m.hp || p.hp, ivs: p.ivs}, R); return {nome: m.nome, slug: m.slug, tipos: m.tipos, habilidade: m.habilidade ? {id: m.habilidade.id, nome: m.habilidade.nome} : null, atk: f.atk, def: f.def, spa: f.spa, spd: f.spd, spe: f.spe}; }), // formas mega, já no nível da batalha
     base: {hp: p.hp, atk: p.atk, def: p.def, spa: p.spa, spd: p.spd, spe: p.spe},
     mv: p.mv.map(m => {
       const g = mapa[m.nome];

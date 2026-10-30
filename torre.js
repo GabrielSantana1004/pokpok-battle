@@ -38,9 +38,9 @@ export async function filaTorre(catalogo, sortear, andares = TORRE_ANDARES) {
 export const nivelNaTorre = (s, p) => Math.min(REGRAS.nivelMax, Math.max(...s.j["1"].equipe.map(q => q.nivel || REGRAS.nivel)) + (p.chefe ? TORRE_NIVEL_CHEFE_MAIS : TORRE_NIVEL_MAIS));
 // Recalcula os atributos de um adversário (e das suas megas) para o nível dado; entra com HP cheio
 export function reescalar(p, nivel) {
-  const R = {...REGRAS, nivel}, f = statsFinais(p.base, R);
+  const R = {...REGRAS, nivel}, f = statsFinais({...p.base, ivs: p.ivs}, R); // mantém os IVs do adversário ao reescalar
   p.nivel = nivel; p.hp = p.hpAtual = f.hp;
-  if (p.megasBase) p.megas = p.megasBase.map(m => { const g = statsFinais({...m, hp: m.hp || p.base.hp}, R), o = p.megas?.find(x => x.slug === m.slug) || {}; return {nome: o.nome, slug: m.slug, tipos: o.tipos, habilidade: o.habilidade ?? null, atk: g.atk, def: g.def, spa: g.spa, spd: g.spd, spe: g.spe}; });
+  if (p.megasBase) p.megas = p.megasBase.map(m => { const g = statsFinais({...m, hp: m.hp || p.base.hp, ivs: p.ivs}, R), o = p.megas?.find(x => x.slug === m.slug) || {}; return {nome: o.nome, slug: m.slug, tipos: o.tipos, habilidade: o.habilidade ?? null, atk: g.atk, def: g.def, spa: g.spa, spd: g.spd, spe: g.spe}; });
   const forma = p.slugMega && p.megas.find(m => m.slug === p.slugMega) || f; // chefe já megaevoluído usa os atributos da mega
   Object.assign(p, {atk: forma.atk, def: forma.def, spa: forma.spa, spd: forma.spd, spe: forma.spe});
   return p;

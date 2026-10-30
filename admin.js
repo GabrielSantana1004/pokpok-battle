@@ -3,7 +3,8 @@ import { listar, salvar, remover } from "./firebase.js";
 import { STATS, TIPOS, esc, valid } from "./common.js";
 import { carregarImagens } from "./imagem.js";
 import { buscarMegas } from "./megas.js";
-import { darCristais, chaveDeNick, definirPermissaoShiny } from "./usuarios.js";
+import { darCristais, chaveDeNick, definirPermissaoShiny, adicionarPokemon } from "./usuarios.js";
+import { lendariosForaDoCatalogo, LENDARIOS } from "./pokemons.js";
 import { buscarHabilidades } from "./habilidadesapi.js";
 import { relatorioHabilidades, relatorioGolpes, relatorioCobertura, csv, HAB_NAO_SE_APLICAM } from "./habilidades.js";
 import { ITENS, TIERS } from "./itens.js";
@@ -126,6 +127,17 @@ $("bt-z").onclick = async () => { // dá (ou tira, com número negativo no conso
   if (!nick || !(n > 0)) return aviso("Informe o nickname e uma quantidade maior que 0.");
   try { aviso(`Pronto: ${nick} agora tem ${await darCristais(chaveDeNick(nick), n)} cristais Z.`); }
   catch(e) { aviso("Não foi possível dar os cristais: " + e.message); }
+};
+$("bt-dar-pk").onclick = async () => { // dá um Pokémon (IVs e shiny sorteados) a uma conta: ferramenta de teste enquanto captura, caixas e iniciais não existem
+  const nick = $("pk-nick").value.trim(), nome = $("pk-nome").value.trim().toLowerCase(), p = cat.find(x => x.nome.toLowerCase() === nome || x.id === nome);
+  if (!nick || !nome) return aviso("Informe o nickname e o nome do Pokémon.");
+  if (!p) return aviso("Pokémon não encontrado no catálogo. Escreva o nome exato.");
+  try { const r = await adicionarPokemon(chaveDeNick(nick), p.id); aviso(`Pronto: ${nick} ganhou ${p.nome}${r.shiny ? " ✨ shiny" : ""} (IVs ${Object.values(r.ivs).join("/")}).`); }
+  catch(e) { aviso("Não foi possível dar o Pokémon: " + e.message); }
+};
+$("bt-lend").onclick = () => { // confere a lista de lendários da torre com os nomes do catálogo
+  const fora = lendariosForaDoCatalogo(cat);
+  aviso(fora.length ? `${LENDARIOS.length - fora.length} de ${LENDARIOS.length} lendários estão no catálogo. Fora do catálogo (nome diferente ou não cadastrado): ${fora.join(", ")}.` : `Os ${LENDARIOS.length} lendários da lista estão todos no catálogo.`);
 };
 // Exporta a lista completa do catálogo (ordem alfabética): um CSV para abrir em planilha e um JSON com os mesmos dados
 const baixar = (nome, texto, tipo) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([texto], {type: tipo})); a.download = nome; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };

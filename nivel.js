@@ -22,8 +22,10 @@ export function infoNivel(xp) {
 // ----- Pontos de treino: cada nível da conta rende 1 ponto, que sobe 1 nível de um Pokémon (de REGRAS.nivel até REGRAS.nivelMax) -----
 // A conta guarda só os níveis dos Pokémon (niveis: {idDoPokemon: nível}); os pontos gastos são calculados a partir deles.
 export const nivelDoPokemon = (niveis, id) => Math.min(REGRAS.nivelMax, Math.max(REGRAS.nivel, Math.floor(niveis?.[id] ?? REGRAS.nivel)));
-export const pontosGastos = niveis => Object.values(niveis || {}).reduce((t, n) => t + Math.max(0, Math.min(REGRAS.nivelMax, Math.floor(n)) - REGRAS.nivel), 0);
-export const pontosLivres = d => Math.max(0, infoNivel(xpDe(d)).nivel - pontosGastos(d?.niveis));
+export const pontosDoNivel = n => Math.max(0, Math.min(REGRAS.nivelMax, Math.floor(n)) - REGRAS.nivel); // pontos de treino que um Pokémon de nível n já consumiu
+export const pontosGastos = niveis => Object.values(niveis || {}).reduce((t, n) => t + pontosDoNivel(n), 0);
+// pontosTrocados: ajuste das trocas. Quem DÁ um Pokémon treinado continua tendo gasto aqueles pontos (+); quem RECEBE ganha o Pokémon sem pagar por ele (−).
+export const pontosLivres = d => Math.max(0, infoNivel(xpDe(d)).nivel - pontosGastos(d?.niveis) - (d?.pontosTrocados || 0));
 
 // ----- Batalha contra o bot: o nível dos adversários acompanha o seu time, e a vitória rende mais XP nas dificuldades maiores -----
 export const XP_VITORIA_BOT = {facil: 10, normal: 20, dificil: 40}; // derrota continua +XP_DERROTA em qualquer dificuldade

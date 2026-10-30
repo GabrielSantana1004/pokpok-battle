@@ -1,7 +1,8 @@
 // Contas simples (nickname + senha) guardadas no Firestore, coleção "usuarios".
-// Documento: { nick, senha (hash), builds: { <id do Pokémon>: ["Golpe 1", ...até 4] } }
+// Documento: { nick, senha (hash), pokemons: { <id da instância>: {esp, ivs, shiny} }, builds: { <id da instância>: ["Golpe 1", ...até 4] } }
 // Atenção: com as regras do Firestore abertas isto identifica quem joga, mas não é segurança de verdade.
-import { listar } from "./firebase.js"; // também inicializa o app com o seu firebaseConfig
+import "./firebase.js"; // inicializa o app com o seu firebaseConfig
+import { novoPokemon, novoIdPokemon, shinyPorInstancia, shinyPorEspecie, tentativaCaptura } from "./pokemons.js";
 import { infoNivel, xpDe, nivelDoPokemon, pontosLivres, caixasLivres } from "./nivel.js";
 import { sortearCaixa, itemPorId, copiasLivres } from "./itens.js";
 import { REGRAS } from "./regras.js";
@@ -30,23 +31,69 @@ async function hash(t) {
 const senhaHash = (k, senha) => hash(k + ":" + senha);
 const entrou = (nick, chave) => { const u = {nick, chave}; localStorage.setItem(CH, JSON.stringify(u)); return u; };
 
-// Shiny: cada Pokémon do catálogo tem 10% de chance de ser shiny para o usuário. O sorteio é feito uma vez, na criação da conta,
-// e guardado em usuarios/<nick>.shiny = { idDoPokemon: true }. Só visual.
-export const CHANCE_SHINY = 0.1;
-async function sortearShiny() {
-  const mapa = {};
-  try { for (const p of await listar()) if (Math.random() < CHANCE_SHINY) mapa[p.id] = true; } catch(e) {}
-  return mapa;
-}
-// Lê os shiny do usuário. Contas antigas (sem o campo) são sorteadas agora, na primeira leitura.
-export async function lerShiny(chave) {
+// ----- Pokémon da conta (instâncias): usuarios/<nick>.pokemons = { idDaInstância: { esp, ivs, shiny } } — ver pokemons.js -----
+// O shiny é sorteado (10%) quando o Pokémon é obtido e depois fica guardado em cada instância. Só visual.
+export async function lerPokemons(chave) {
   const s = await getDoc(ref(chave));
-  if (!s.exists()) return {};
-  if (s.data().shiny) return s.data().shiny;
-  const mapa = await sortearShiny();
-  await updateDoc(ref(chave), {shiny: mapa});
-  return mapa;
+  return s.exists() ? s.data().pokemons || {} : {};
 }
+// Dá um Pokémon novo à conta (IVs e shiny sorteados). Por enquanto vem da tela de admin; captura, caixas e inicial vão usar o mesmo caminho.
+export const adicionarPokemon = (chave, espId) => runTransaction(db, async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Confira o nickname.");
+  const id = novoIdPokemon(), reg = novoPokemon(espId);
+  tx.update(ref(chave), {[`pokemons.${id}`]: reg});
+  return {id, ...reg};
+});
+// Inicial: toda conta nova escolhe 1 entre os 27 iniciais (usuarios/<nick>.inicial guarda a espécie escolhida; só dá para escolher uma vez)
+export const inicialEscolhido = async chave => { const s = await getDoc(ref(chave)); return s.exists() && !!s.data().inicial; };
+export const escolherInicial = (chave, espId) => runTransaction(db, async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
+  if (us.data().inicial) throw new Error("Esta conta já escolheu o inicial.");
+  const id = novoIdPokemon(), reg = novoPokemon(espId);
+  tx.update(ref(chave), {inicial: String(espId), [`pokemons.${id}`]: reg});
+  return {id, ...reg};
+});
+// ----- capturas: usuarios/<nick>.capturas = [{tipo: "bot"|"lendario", esp, sala, tentativas}] — a captura ganha na última vitória, ligada à sala; ela aparece na própria tela de fim da batalha -----
+const achar = (caps, sala) => caps.findIndex(c => c.sala === sala);
+// A captura desta sala. O lendário da torre só é sorteado aqui (escolherEsp devolve o id da espécie) e fica gravado: recarregar a página não sorteia de novo.
+export const prepararCaptura = (chave, escolherEsp, sala) => runTransaction(db, async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
+  const caps = [...(us.data().capturas || [])], i = achar(caps, sala);
+  if (i < 0) return null;
+  if (!caps[i].esp) {
+    const esp = escolherEsp();
+    if (!esp) throw new Error("Não há lendários no catálogo para sortear.");
+    caps[i] = {...caps[i], esp: String(esp)}; tx.update(ref(chave), {capturas: caps});
+  }
+  return {...caps[i]};
+});
+// Um lançamento de Pokébola (grátis, sem limite): capturou → vira um Pokémon da conta (IVs e shiny sorteados); fugiu → acabou; escapou → continua.
+export const tentarCaptura = (chave, sala) => runTransaction(db, async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
+  const caps = [...(us.data().capturas || [])], i = achar(caps, sala), c = caps[i];
+  if (!c?.esp) throw new Error("Você não tem nenhuma captura em andamento.");
+  const resultado = tentativaCaptura(c.tipo), tentativas = (c.tentativas || 0) + 1;
+  if (resultado === "escapou") { caps[i] = {...c, tentativas}; tx.update(ref(chave), {capturas: caps}); return {resultado, tentativas}; }
+  caps.splice(i, 1);
+  if (resultado === "fugiu") { tx.update(ref(chave), {capturas: caps}); return {resultado, tentativas, esp: c.esp}; }
+  const id = novoIdPokemon(), reg = novoPokemon(c.esp);
+  tx.update(ref(chave), {capturas: caps, [`pokemons.${id}`]: reg});
+  return {resultado, tentativas, esp: c.esp, pokemon: {id, ...reg}};
+});
+// Sair da sala sem terminar a captura: o Pokémon vai embora
+export const descartarCaptura = (chave, sala) => runTransaction(db, async tx => {
+  const us = await tx.get(ref(chave)); if (!us.exists()) return;
+  const caps = us.data().capturas || [];
+  if (caps.some(c => c.sala === sala)) tx.update(ref(chave), {capturas: caps.filter(c => c.sala !== sala)});
+});
+// Shiny por instância ({idDaInstância: true}) — usado em Meus Pokémon e na batalha
+export const lerShiny = async chave => shinyPorInstancia(await lerPokemons(chave));
+// Shiny por espécie ({idDaEspécie: true}) — usado no catálogo: mostra a arte shiny das espécies que a conta tem shiny
+export const lerShinyEspecies = async chave => shinyPorEspecie(await lerPokemons(chave));
 // Permissão especial: a conta escolhe quais Pokémon dela são shiny (liga e desliga quando quiser, em "Meus Pokémon").
 // A permissão é marcada à mão no Firestore: usuarios/<nick>.permissoes = { shinyLivre: true }. Só visual.
 export async function podeEscolherShiny(chave) {
@@ -64,10 +111,10 @@ export const definirShiny = (chave, pokemonId, ligado) => runTransaction(db, asy
   const us = await tx.get(ref(chave));
   if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
   if (!us.data().permissoes?.shinyLivre) throw new Error("Esta conta não tem permissão para escolher shiny.");
-  const shiny = {...(us.data().shiny || {})};
-  if (ligado) shiny[pokemonId] = true; else delete shiny[pokemonId];
-  tx.update(ref(chave), {shiny});
-  return shiny;
+  const pokemons = us.data().pokemons || {};
+  if (!pokemons[pokemonId]) throw new Error("Pokémon não encontrado na conta.");
+  tx.update(ref(chave), {[`pokemons.${pokemonId}.shiny`]: !!ligado});
+  return shinyPorInstancia({...pokemons, [pokemonId]: {...pokemons[pokemonId], shiny: !!ligado}});
 });
 export async function criarConta(nick, senha) {
   nick = nick.trim();
@@ -75,7 +122,7 @@ export async function criarConta(nick, senha) {
   if (senha.length < 4) throw new Error("A senha precisa ter pelo menos 4 caracteres.");
   const k = chaveDe(nick);
   if ((await getDoc(ref(k))).exists()) throw new Error("Esse nickname já está em uso.");
-  await setDoc(ref(k), {nick, senha: await senhaHash(k, senha), builds: {}, shiny: await sortearShiny()});
+  await setDoc(ref(k), {nick, senha: await senhaHash(k, senha), builds: {}, pokemons: {}});
   return entrou(nick, k);
 }
 export async function entrarConta(nick, senha) {
@@ -163,17 +210,22 @@ export async function lerInventario(chave) {
   const s = await getDoc(ref(chave)), d = s.exists() ? s.data() : {};
   return {itens: d.itens || {}, itensEq: d.itensEq || {}};
 }
-// Abre 1 caixa (cada nível da conta rende 1): 30% cristais Z (1 a 3) · 70% cinco itens. Tudo na mesma transação, então não dá para abrir a mesma caixa duas vezes.
-export const abrirCaixa = chave => runTransaction(db, async tx => {
+// Abre 1 caixa (cada nível da conta rende 1): 5 coisas entre itens e cristais Z (5+0, 4+1, 3+2 ou 2+3). Tudo na mesma transação, então não dá para abrir a mesma caixa duas vezes.
+// escolherEsp: devolve o id da espécie sorteada para a Pokébola da caixa (usa o catálogo, que só a página tem)
+export const abrirCaixa = (chave, escolherEsp = null) => runTransaction(db, async tx => {
   const us = await tx.get(ref(chave));
   if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
   const d = us.data();
   if (caixasLivres(d) < 1) throw new Error("Você não tem caixas para abrir: cada nível da conta rende 1 caixa.");
   const r = sortearCaixa(), atualiza = {caixasAbertas: (d.caixasAbertas || 0) + 1};
-  if (r.tipo === "cristais") atualiza.zcristais = (d.zcristais || 0) + r.n;
-  else { const itens = {...(d.itens || {})}; for (const id of r.itens) itens[id] = (itens[id] || 0) + 1; atualiza.itens = itens; }
+  if (r.cristais) atualiza.zcristais = (d.zcristais || 0) + r.cristais;
+  const itens = {...(d.itens || {})}, jaTinha = [];
+  for (const id of r.itens) { jaTinha.push((itens[id] || 0) > 0); itens[id] = (itens[id] || 0) + 1; }
+  if (r.itens.length) atualiza.itens = itens;
+  let pokemon = null; // Pokébola (20%): um Pokémon aleatório já vem para a conta, com IVs e shiny sorteados
+  if (r.pokebola) { const esp = escolherEsp?.(); if (esp) { const id = novoIdPokemon(), reg = novoPokemon(esp); atualiza[`pokemons.${id}`] = reg; pokemon = {id, ...reg}; } }
   tx.update(ref(chave), atualiza);
-  return {...r, jaTinha: r.tipo === "itens" ? r.itens.map(id => (d.itens?.[id] || 0) > 0) : []};
+  return {...r, jaTinha, pokemon};
 });
 // Equipa (ou tira, com null) o item de um Pokémon. Cada cópia do item só segura em 1 Pokémon por vez.
 export const equiparItem = (chave, pokemonId, id) => runTransaction(db, async tx => {

@@ -209,11 +209,13 @@ t("Precisão, crítico, flinch, Power Herb, Binding Band", () => {
   const mg = duelo("magician", null, ["tackle"], ["splash"], ["Normal"], ["Normal"], {}, com("leftovers")); go(mg, "tackle", "splash"); assert.equal(A(mg).item?.id, "leftovers");
 });
 t("Caixas e inventário", () => {
-  let c = 0, itens = 0, tiers = {comum: 0, incomum: 0, raro: 0}, crist = {1: 0, 2: 0, 3: 0}, tot = 0;
-  for (let i = 0; i < 30000; i++) { const r = sortearCaixa(); if (r.tipo === "cristais") { c++; crist[r.n]++; assert.ok(r.n >= 1 && r.n <= 3); } else { assert.equal(r.itens.length, CAIXA.itens); for (const id of r.itens) { tiers[itemPorId(id).tier]++; tot++; assert.ok(!itemPorId(id).semEfeito); } itens++; } }
-  perto(c / 30000, 0.3, 0.015, "30% de cristais"); for (const n of [1, 2, 3]) perto(crist[n] / c, 1 / 3, 0.03, "cristais uniformes");
+  const N = 30000, comb = {0: 0, 1: 0, 2: 0, 3: 0}, tiers = {comum: 0, incomum: 0, raro: 0}; let tot = 0;
+  for (let i = 0; i < N; i++) { const r = sortearCaixa(); assert.equal(r.itens.length + r.cristais, CAIXA.total, "sempre 5 coisas"); assert.ok(r.cristais >= 0 && r.cristais <= 3); comb[r.cristais]++; for (const id of r.itens) { tiers[itemPorId(id).tier]++; tot++; assert.ok(!itemPorId(id).semEfeito); } }
+  for (const n of [0, 1, 2, 3]) perto(comb[n] / N, 0.25, 0.015, "combinações uniformes (5+0, 4+1, 3+2, 2+3)");
   perto(tiers.comum / tot, 0.6, 0.02, "60% comuns"); perto(tiers.incomum / tot, 0.3, 0.02, "30% incomuns"); perto(tiers.raro / tot, 0.1, 0.02, "10% raros");
-  assert.equal(sortearCaixa(() => 0.1).tipo, "cristais"); assert.equal(sortearCaixa(() => 0.9).tipo, "itens");
+  { let pb = 0; for (let i = 0; i < N; i++) if (sortearCaixa().pokebola) pb++; perto(pb / N, 0.2, 0.01, "20% de Pokébola na caixa"); }
+  assert.equal(sortearCaixa(() => 0.1).pokebola, true); assert.equal(sortearCaixa(() => 0.5).pokebola, false);
+  assert.equal(sortearCaixa(() => 0.1).cristais, 0); assert.equal(sortearCaixa(() => 0.4).cristais, 1); assert.equal(sortearCaixa(() => 0.6).cristais, 2); assert.equal(sortearCaixa(() => 0.9).cristais, 3);
   // bots
   let nenhum = 0, ch = 0; for (let i = 0; i < 2000; i++) { if (!itemDeBot("facil")) nenhum++; const r = itemDeBot("chefe"); assert.ok(r && itemPorId(r.id).tier !== "comum"); }
   perto(nenhum / 2000, 0.7, 0.04, "fácil: 30% com item"); for (let i = 0; i < 300; i++) assert.ok(itemDeBot("dificil")); 

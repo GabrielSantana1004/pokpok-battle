@@ -3,6 +3,7 @@ import { golpesDe } from "./golpesdb.js";
 import { habilidadeAleatoria } from "./habilidades.js";
 import { copiaPokemon } from "./motor.js";
 import { REGRAS } from "./regras.js";
+import { sortearIvs } from "./pokemons.js";
 export const NIVEL_BOT = REGRAS.nivel; // os bots lutam sempre neste nível (não sobem)
 
 const embaralhar = a => { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
@@ -31,7 +32,7 @@ export async function sortearEquipe(catalogo, n = 6, shinyDe = () => Math.random
   for (const p of embaralhar(catalogo.filter(p => p.aprende?.length || p.mv?.length))) {
     if (equipe.length >= n) break;
     const mv = await golpesSorteados(p, mapa);
-    if (mv) equipe.push({...p, mv, shiny: !!shinyDe(p), nivel: nivelDe(p), habilidade: habDe(p), item: itemDe(p)});
+    if (mv) equipe.push({...p, mv, ivs: sortearIvs(), shiny: !!shinyDe(p), nivel: nivelDe(p), habilidade: habDe(p), item: itemDe(p)});
   }
   if (!equipe.length) throw new Error("Não consegui sortear Pokémon: o catálogo está vazio ou sem golpes sincronizados.");
   return {equipe, mapa};

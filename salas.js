@@ -179,8 +179,10 @@ export const contabilizarResultado = (codigo, papel) => runTransaction(db, async
     const us = await tx.get(refUsuario(eu.chave));
     if (!us.exists()) return false;
     const d = us.data(), ganho = xpTorreTotal(s.torre.n), xp = xpDe(d) + ganho, antes = infoNivel(xpDe(d)).nivel, depois = infoNivel(xp).nivel;
-    tx.update(refUsuario(eu.chave), {xp});
+    const lendario = !!s.torre.completa; // torre vencida (chegou ao topo): aparece 1 lendário para capturar (a espécie é sorteada na tela de captura)
+    tx.update(refUsuario(eu.chave), {xp, ...(lendario ? {capturas: [{tipo: "lendario", esp: null, sala: codigo}]} : {})});
     eu.resultado = {xp: ganho, nivelNovo: depois > antes ? depois : null};
+    if (lendario) s.capturaGanha = "lendario";
     tx.set(ref(codigo), s);
     return {vitorias: d.vitorias || 0, xp, nick: d.nick || eu.chave, chave: eu.chave}; // o XP novo também vai para o ranking
   }
@@ -190,8 +192,11 @@ export const contabilizarResultado = (codigo, papel) => runTransaction(db, async
   const d = us.data(), venceu = s.vencedor === papel, ganho = venceu ? (s.bot ? xpVitoriaBot(s.botNivel || "facil") : XP_VITORIA) : XP_DERROTA; // contra o bot, a vitória rende 10/20/40 XP (fácil/normal/difícil)
   const xp = xpDe(d) + ganho, nivelAntes = infoNivel(xpDe(d)).nivel, nivelDepois = infoNivel(xp).nivel;
   const vit = (d.vitorias || 0) + (venceu ? 1 : 0), reviver = venceu && vit % VITORIAS_POR_REVIVER === 0; // a cada 20 vitórias, 1 Reviver
-  tx.update(refUsuario(eu.chave), {xp, ...(venceu ? {vitorias: vit, pocoes: (d.pocoes || 0) + 1, ...(reviver ? {revives: (d.revives || 0) + 1} : {})} : {})});
+  const alvos = s.bot && venceu ? (s.j[papel === "1" ? "2" : "1"]?.equipe || []).filter(p => p?.id) : []; // vitória contra o bot: 1 dos 6 Pokémon dele pode ser capturado
+  const captura = alvos.length ? {tipo: "bot", esp: String(alvos[Math.floor(Math.random() * alvos.length)].id), sala: codigo} : null;
+  tx.update(refUsuario(eu.chave), {xp, ...(captura ? {capturas: [captura]} : {}), ...(venceu ? {vitorias: vit, pocoes: (d.pocoes || 0) + 1, ...(reviver ? {revives: (d.revives || 0) + 1} : {})} : {})});
   eu.resultado = {xp: ganho, nivelNovo: nivelDepois > nivelAntes ? nivelDepois : null};
+  if (captura) s.capturaGanha = "bot";
   if (venceu) { s.vitoriaContada = true; if (reviver) s.reviverGanho = true; }
   tx.set(ref(codigo), s);
   return {vitorias: vit, xp, nick: d.nick || eu.chave, chave: eu.chave};

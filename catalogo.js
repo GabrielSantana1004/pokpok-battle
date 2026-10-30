@@ -3,7 +3,7 @@ import { STATS, TIPOS, esc, nav } from "./common.js";
 import { carregarImagens } from "./imagem.js";
 import { golpesDe } from "./golpesdb.js";
 import { resumoEfeitos } from "./motor.js";
-import { usuario, lerShiny } from "./usuarios.js";
+import { usuario, lerShinyEspecies } from "./usuarios.js";
 const leitura = document.body.dataset.leitura === "1"; // dentro da sala: só leitura
 if (!leitura) nav();
 const $ = id => document.getElementById(id);
@@ -71,7 +71,7 @@ async function trocarAba(nova) {
 async function carregar() {
   try {
     cat = await listar();
-    const u = usuario(); if (u) meus = await lerShiny(u.chave).catch(() => ({})); // conta logada: seus shiny aparecem com a arte shiny
+    const u = usuario(); if (u) meus = await lerShinyEspecies(u.chave).catch(() => ({})); // conta logada: seus shiny aparecem com a arte shiny
     render();
   }
   catch(e) { $("erro").textContent = "Não foi possível carregar o catálogo. Confira o firebaseConfig e as regras do Firestore."; }
