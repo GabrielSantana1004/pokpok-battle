@@ -2,6 +2,7 @@
 import "./firebase.js";
 import { getFirestore, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { nav } from "./common.js";
+import { apagarCache } from "./cache.js";
 import { converterGolpe } from "./conversor.js";
 nav();
 const $ = id => document.getElementById(id);
@@ -32,6 +33,7 @@ $("go").onclick = async () => {
       for (const d of docs.slice(i, i + 400)) lote.set(doc(db, "golpes", d.id), d, {merge: true}); // merge: mantém nomePt, descricao, secao...
       await lote.commit();
     }
+    await apagarCache("golpe:"); // os golpes mudaram: o cache deste navegador é refeito na próxima batalha
     const ok = docs.filter(d => d.suportado).length;
     log(`\nPronto: ${ok} golpes funcionam na batalha e ${docs.length - ok} ficaram bloqueados.`);
     const motivos = {}; for (const d of docs) if (!d.suportado) motivos[d.motivo] = (motivos[d.motivo] || 0) + 1;

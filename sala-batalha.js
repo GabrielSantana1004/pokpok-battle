@@ -6,7 +6,8 @@ import { ativoDe, vivos, precisaTrocar, adv, megaBloqueada, nomeCond, nomeStat, 
 import { spriteImg } from "./imagem.js";
 import { E, badge, imgN, imgAttr, persp, jogada } from "./salaestado.js";
 import { barra } from "./sala-fx.js";
-import { xpTorre, xpTorreTotal } from "./nivel.js";
+import { xpTorre, xpTorreTotal, XP_RAID } from "./nivel.js";
+import { HP_RAID } from "./raid.js";
 import { golpeZ, elegivelZ } from "./zmoves.js";
 
 // efeitos "voláteis" (substituto, semente, preso...) que aparecem como etiquetas
@@ -36,6 +37,8 @@ function barraCampo(s) {
 }
 // torre: o adversário só mostra o Pokémon em campo; no lugar das miniaturas vai o placar da subida
 const torreInfo = T => `<div class="torre-info"><span>🗼 Andar ${T.andar}/${T.total}</span><span>${T.n} ${T.n === 1 ? "derrotado" : "derrotados"}</span><span title="XP da próxima vitória">próxima: +${xpTorre(T.n + 1)} XP</span><span title="XP acumulado, recebido ao fim da subida">acumulado: ${xpTorreTotal(T.n)} XP</span></div>`;
+// raid: no lugar das miniaturas do adversário vai o aviso do chefe gigante
+const raidInfo = R => `<div class="torre-info raid-info"><span>🐉 Raid: ${esc(R.nome)}</span><span>HP ×${HP_RAID}</span><span title="XP ao vencer">vitória: +${XP_RAID} XP e captura</span></div>`;
 // bolinhas do time: uma por Pokémon (cinza = derrotado, borda amarela = em campo)
 const bolas = j => `<div class="bolas" title="Pokémon restantes: ${vivos(j).length}/${j.equipe.length}">${j.equipe.map((q, i) => `<i class="${q.hpAtual <= 0 ? "caido" : ""}${i === j.ativo ? " ativa" : ""}"></i>`).join("")}</div>`;
 function caixaVida(s, k) {
@@ -70,6 +73,11 @@ function caixaAcao(s) {
     const res = jogador ? s.j[papel].resultado : null; // XP e nível ganhos (gravados na sala quando o resultado é creditado)
     const xpTxt = res ? ` ⭐ +${res.xp} XP${res.nivelNovo != null ? ` · 🎉 Subiu para o nível ${res.nivelNovo}! +1 ponto de treino (Meus Pokémon)` : ""}` : "";
     const premio = s.vitoriaContada ? ` 🏆 +1 vitória e +1 poção!${s.reviverGanho ? " 💫 E um Reviver (20 vitórias)!" : ""}` : "";
+    if (s.raid) { // fim da raid: XP e, se o chefe caiu, a captura do lendário (sem fuga)
+      const R = s.raid, ganhou = s.vencedor === papel, x = !jogador ? "" : res ? xpTxt : " ⭐ XP a receber…";
+      const quem = s.vencedor === "empate" ? `Empate! Os dois lados caíram: ${esc(R.nome)} escapou.` : !s.vencedor ? "A raid terminou: um dos jogadores saiu." : ganhou ? `🏆 Você derrotou ${esc(R.nome)}! Ele está exausto e não pode mais fugir.` : `${esc(R.nome)} venceu: seu time caiu.`;
+      return `<div class="acao fim" data-quem="${jogador && s.vencedor && s.vencedor !== "empate" ? (ganhou ? "eu" : "adv") : ""}"><p class="texto">${quem}${x}</p>${jogador ? htmlCaptura() : ""}${ult}<button onclick="sairSala()">Sair da raid</button></div>`;
+    }
     if (s.torre) { // fim da torre: só XP (sem vitória, poção nem ranking)
       const T = s.torre, der = `${T.n} ${T.n === 1 ? "Pokémon derrotado" : "Pokémon derrotados"}`, quem = T.completa ? `🏆 Você chegou ao topo da torre! ${der}.` : T.encerrada ? `Você deixou a torre com ${der}.` : `Fim da subida: seu time caiu depois de ${der}.`;
       const x = !jogador ? "" : res ? xpTxt : ` ⭐ ${xpTorreTotal(T.n)} XP a receber…`;
@@ -87,11 +95,11 @@ function caixaAcao(s) {
   const forcado = V.recarga ? "Seu Pokémon precisa recarregar: qualquer escolha vale." : V.carga != null ? "Seu Pokémon continua o golpe de 2 turnos: qualquer escolha vale." : V.furia ? "Seu Pokémon está em fúria e repete o golpe." : V.encore ? "Encore: seu Pokémon repete o último golpe." : "";
   const bloq = (m, i) => (V.provocar > 0 && m.cat === "status") || (V.disable && V.disable.idx === i);
   const podeMega = !forcado && !megaBloqueada(s, eu) && !A.slugMega && A.megas?.length > 0;
-  // golpe Z: 1 por batalha, gasta 1 cristal Z da conta; não vale junto com megaevolução nem para Pokémon já megaevoluído
-  const podeZ = E.jogador && !!eu.chave && !forcado && !eu.zUsada && !A.slugMega && A.mv.some(elegivelZ), temZ = (E.status.zcristais || 0) > 0;
+  // golpe Z: 1 por batalha, gasta 1 cristal Z da conta; não vale junto com megaevolução nem para Pokémon já megaevoluído (na raid vale para quem já megaevoluiu, 1 por Pokémon)
+  const podeZ = E.jogador && !!eu.chave && !forcado && !(s.raid ? A.zUsou : eu.zUsada) && (s.raid || !A.slugMega) && A.mv.some(elegivelZ), temZ = (E.status.zcristais || 0) > 0;
   if (!podeMega || E.zSel) E.megaSel = null;
   if (!podeZ || !temZ) E.zSel = false;
-  const zBtn = podeZ ? `<div class="z-btn"><button type="button" class="${E.zSel ? "primario" : ""}" ${temZ ? "" : "disabled"} onclick="golpeZ()" title="Gasta 1 cristal Z; 1 por batalha">💎 ${E.zSel ? "Golpe Z ativado: escolha o golpe" : "Golpe Z"} (${E.status.zcristais || 0} ${E.status.zcristais === 1 ? "cristal" : "cristais"})</button></div>` : "";
+  const zBtn = podeZ ? `<div class="z-btn"><button type="button" class="${E.zSel ? "primario" : ""}" ${temZ ? "" : "disabled"} onclick="golpeZ()" title="Gasta 1 cristal Z; ${s.raid ? "1 por Pokémon" : "1 por batalha"}">💎 ${E.zSel ? "Golpe Z ativado: escolha o golpe" : "Golpe Z"} (${E.status.zcristais || 0} ${E.status.zcristais === 1 ? "cristal" : "cristais"})</button></div>` : "";
   const megaBtn = podeMega && !E.zSel ? `<div class="mega-btn">${A.megas.map((m, i) => `<button type="button" class="${E.megaSel === i ? "primario" : ""}" onclick="mega(${i})">⚡ ${E.megaSel === i ? "Vai megaevoluir: " : "Megaevoluir: "}${esc(m.nome)}</button>`).join("")}</div>` : "";
   return `<div class="acao" data-quem="eu"><p class="dica">${forcado || "Escolha seu movimento (trocar de Pokémon e usar itens fica no menu ☰)"}</p>${megaBtn}${zBtn}<div class="golpes-btn">${A.mv.map((m, i) => {
     const z = E.zSel ? golpeZ(m) : null; // com o golpe Z ativado, cada golpe de dano mostra o seu golpe Z
@@ -101,8 +109,8 @@ function caixaAcao(s) {
 export function telaBatalha() {
   const s = E.s, eu = persp(), op = adv(eu), pEu = ativoDe(s.j[eu]), pOp = ativoDe(s.j[op]);
   return `<div class="batalha">
-    <div class="sala-id">Sala ${esc(E.codigo)} <span class="papel">${E.jogador ? "Jogador " + E.papel : "Espectador"}</span>${s.torre ? ` <span class="papel">Torre</span>` : s.bot ? ` <span class="papel">Bot: ${{facil: "fácil", normal: "normal", dificil: "difícil"}[s.botNivel] || "fácil"}</span>` : ""}</div>
-    ${s.torre ? torreInfo(s.torre) : `<div class="eq-adv">${miniaturas(s.j[op])}</div>`}
+    <div class="sala-id">Sala ${esc(E.codigo)} <span class="papel">${E.jogador ? "Jogador " + E.papel : "Espectador"}</span>${s.torre ? ` <span class="papel">Torre</span>` : s.raid ? ` <span class="papel">Raid</span>` : s.bot ? ` <span class="papel">Bot: ${{facil: "fácil", normal: "normal", dificil: "difícil"}[s.botNivel] || "fácil"}</span>` : ""}</div>
+    ${s.torre ? torreInfo(s.torre) : s.raid ? raidInfo(s.raid) : `<div class="eq-adv">${miniaturas(s.j[op])}</div>`}
     ${barraCampo(s)}
     <div class="campo" data-clima="${(s.campo && s.campo.clima && s.campo.clima.t) || ""}" data-terreno="${(s.campo && s.campo.terreno && s.campo.terreno.t) || ""}">
       <div class="hud adv">${caixaVida(s, op)}</div>

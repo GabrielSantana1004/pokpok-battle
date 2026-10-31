@@ -65,6 +65,12 @@ $("criar-torre").onclick = async () => { // torre: bot que manda um Pokémon por
   try { aviso(); codigo = await criarSala(true, "normal", true); await entrar(codigo, "1"); location.href = "sala.html"; }
   catch(e) { aviso(e.message); b.disabled = false; b.textContent = "Subir a torre"; }
 };
+$("criar-raid").onclick = async () => { // raid: um lendário com 6x o HP; exige conta (o lendário capturado vai para ela)
+  if (semConta()) return;
+  const b = $("criar-raid"); b.disabled = true; b.textContent = "Procurando um lendário…";
+  try { aviso(); codigo = await criarSala(true, "dificil", false, true); await entrar(codigo, "1"); location.href = "sala.html"; }
+  catch(e) { aviso(e.message); b.disabled = false; b.textContent = "Enfrentar uma raid"; }
+};
 $("buscar").onclick = buscar;
 $("codigo").onkeydown = e => { if (e.key === "Enter") buscar(); };
 Object.assign(window, {ir, retomar});

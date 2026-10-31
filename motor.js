@@ -968,7 +968,8 @@ function decidir(s, k, esc, L) {
 
 // Megaevolução: o Pokémon ativo troca de nome, tipos e atributos (o HP não muda). Cada equipe só pode megaevoluir uma vez.
 // Na Torre não há limite de megas por equipe, mas só se megaevolui de novo depois que a mega anterior cair; nas outras salas é 1 por equipe.
-export const megaBloqueada = (s, J) => s.torre ? J.equipe.some(q => q.slugMega && q.hpAtual > 0) : !!J.megaUsada;
+// Na Raid o jogador megaevolui quantos Pokémon quiser (cada um só uma vez); o chefe lendário nunca megaevolui.
+export const megaBloqueada = (s, J) => s.raid ? !!J.bot : s.torre ? J.equipe.some(q => q.slugMega && q.hpAtual > 0) : !!J.megaUsada;
 function megaEvoluir(s, k, idx, L) {
   const J = s.j[k], P = ativoDe(J), m = P.megas?.[idx];
   if (!m || megaBloqueada(s, J) || P.slugMega || P.hpAtual <= 0) return;

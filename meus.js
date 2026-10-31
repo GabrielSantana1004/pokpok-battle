@@ -8,7 +8,7 @@ import { REGRAS, statsFinais } from "./regras.js";
 import { usuario, criarConta, entrarConta, lerBuilds, salvarBuild, lerEscolhasHab, salvarEscolhaHab, podeEscolherShiny, definirShiny } from "./usuarios.js";
 import { habilidadeEscolhida, marcaHabilidade, estadoHabilidade } from "./habilidades.js";
 import { lerInventario, abrirCaixa, equiparItem, lerPokemons, inicialEscolhido, escolherInicial } from "./usuarios.js";
-import { instancias, shinyPorInstancia, somaIvs, IV_STATS, IV_MAX, acharIniciais, sortearPokemonAleatorio } from "./pokemons.js";
+import { instancias, shinyPorInstancia, somaIvs, IV_STATS, IV_MAX, acharIniciais, sortearPokemonAleatorio, tagLendario } from "./pokemons.js";
 import { ITENS, TIERS, itemPorId, copiasLivres, marcaItem } from "./itens.js";
 nav();
 const $ = id => document.getElementById(id);
@@ -57,7 +57,7 @@ function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica f
     const mv = golpesDe(p);
     return `<article class="card">
       <img class="foto" data-pokemon="${esc(p.nome)}"${shiny[p.id] ? ' data-shiny="1"' : ""} alt="${esc(p.nome)}" loading="lazy">
-      <h3>${esc(p.nome)}${shiny[p.id] ? " ✨" : ""} <small class="nv-pk">Nv ${nivelDoPokemon(niveis, p.id)}</small>${p.megas?.length ? ' <small title="Pode megaevoluir: ' + esc(p.megas.map(m => m.nome).join(", ")) + '">⚡ Mega</small>' : ""}</h3>
+      <h3>${esc(p.nome)}${shiny[p.id] ? " ✨" : ""} ${tagLendario(p.nome)} <small class="nv-pk">Nv ${nivelDoPokemon(niveis, p.id)}</small>${p.megas?.length ? ' <small title="Pode megaevoluir: ' + esc(p.megas.map(m => m.nome).join(", ")) + '">⚡ Mega</small>' : ""}</h3>
       <div class="tipos">${p.tipos.map(badge).join("")}</div>
       ${p.ivs ? `<p class="hab-card" title="${esc(IV_STATS.map(k => `${k.toUpperCase()} ${p.ivs[k]}`).join(" · "))}">📊 IVs ${somaIvs(p.ivs)}/${IV_STATS.length * IV_MAX}</p>` : ""}
       ${p.habilidades?.length ? `<p class="hab-card">🧬 ${esc(habilidadeEscolhida(p, habs).nome)}${inv.itensEq[p.id] && itemPorId(inv.itensEq[p.id]) ? ` · 🎒 ${esc(itemPorId(inv.itensEq[p.id]).nome)}` : ""}</p>` : ""}

@@ -39,7 +39,7 @@ export const INICIAIS = [
   ["Rillaboom", "Cinderace", "Inteleon"],
   ["Meowscarada", "Skeledirge", "Quaquaval"]
 ];
-const chaveNome = n => String(n || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+export const chaveNome = n => String(n || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
 // Casa cada inicial com o catálogo pelo nome (sem acento, maiúscula ou hífen). Devolve as mesmas linhas, com a espécie ou null se não estiver no catálogo.
 export const acharIniciais = catalogo => {
   const porNome = new Map(catalogo.map(p => [chaveNome(p.nome), p]));
@@ -49,7 +49,7 @@ export const acharIniciais = catalogo => {
 // ----- captura: a bola é a Pokébola comum, grátis e sem limite de tentativas; cada lançamento termina em uma de 3 coisas:
 //   capturou (o Pokémon vai para a conta) · escapou (continua lá, dá para tentar de novo) · fugiu (a chance acabou)
 // Pokémon do bot: 47,5% captura · 47,5% escapa · 5% foge. Lendário (prêmio da torre): captura 2x menor (23,75%), foge 5%, escapa o resto (71,25%).
-export const CAPTURA = {bot: {captura: 0.475, fuga: 0.05}, lendario: {captura: 0.2375, fuga: 0.05}};
+export const CAPTURA = {bot: {captura: 0.475, fuga: 0.05}, lendario: {captura: 0.2375, fuga: 0.05}, raid: {captura: 0.2375, fuga: 0}}; // raid: mesma chance do lendário, mas o chefe derrotado nunca foge (dá para tentar até capturar)
 export function tentativaCaptura(tipo, rng = Math.random) {
   const c = CAPTURA[tipo] || CAPTURA.bot, r = rng();
   if (r < c.captura) return "capturou";
@@ -78,8 +78,18 @@ export const lendariosForaDoCatalogo = catalogo => { const chaves = catalogo.map
 // um nome é lendário se é um da lista ou uma forma dele (ex.: "Kyurem Black", "Urshifu Rapid Strike", "Giratina Origin")
 const CHAVES_LEND = LENDARIOS.map(chaveNome);
 export const ehLendario = nome => { const k = chaveNome(nome); return CHAVES_LEND.some(l => k.startsWith(l)); };
+// Lendários que só se ganham nas Missões (nunca saem na torre nem na raid)
+export const LENDARIOS_MISSAO = [
+  "Arceus", "Darkrai", "Eternatus", "Koraidon", "Miraidon", "Kyurem", "Zygarde", "Regigigas", "Rayquaza", "Necrozma", "Mewtwo", "Silvally", // coleções especiais
+  "Registeel", "Kyogre", "Regidrago", "Regieleki", "Diancie", "Marshadow", "Ho-Oh", "Regice", "Genesect", "Urshifu", "Type: Null", "Regirock", "Shaymin", "Deoxys", "Groudon", "Pecharunt", "Lugia" // um por tipo (Darkrai já está acima)
+];
+const CHAVES_MISSAO = LENDARIOS_MISSAO.map(chaveNome);
+// Etiqueta "lendário" mostrada no catálogo e em Meus Pokémon (vale para todos da lista LENDARIOS e para as formas deles)
+export const tagLendario = nome => ehLendario(nome) ? '<span class="tag-lendario" title="Pokémon lendário ou mítico">⭐ Lendário</span>' : "";
+export const ehMissao = nome => { const k = chaveNome(nome); return CHAVES_MISSAO.some(m => k.startsWith(m)); };
+// Lendário do prêmio da torre: da lista, sem os de missão (a torre pode repetir uma espécie que a conta já tem)
 export function sortearLendario(catalogo, rng = Math.random) {
-  const lista = catalogo.filter(p => ehLendario(p.nome));
+  const lista = catalogo.filter(p => ehLendario(p.nome) && !ehMissao(p.nome));
   return lista.length ? lista[Math.floor(rng() * lista.length)] : null;
 }
 

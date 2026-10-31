@@ -29,6 +29,7 @@ function desenhar() {
   else {
     const stj = k => { const j = s.j[k]; if (j && j.bot) return "bot (equipe pronta)"; return !j ? "aguardando entrar" : j.saiu ? "saiu" : j.confirmada ? "equipe confirmada" : "escolhendo equipe"; };
     let h = `<h2>Sala ${esc(E.codigo)}</h2><p>Você é <b>${E.jogador ? "Jogador " + E.papel : "espectador"}</b>. <button onclick="sairSala()">Sair da sala</button></p>`;
+    if (s.raid && s.fase !== "fim") h += `<p class="aviso-raid">🐉 <b>Raid:</b> ${esc(s.raid.nome)} (HP ×6). Leve até 6 Pokémon: megas à vontade e golpe Z para quem já megaevoluiu.</p>`;
     if (s.fase === "fim") h += `<p>Sala encerrada: um dos jogadores saiu.</p>`;
     else h += `<p>Jogador 1: ${stj("1")} · Jogador 2: ${stj("2")}</p>` + (E.jogador ? telaEquipe() : "<p>Aguardando os jogadores montarem as equipes...</p>");
     $("conteudo").innerHTML = h;
@@ -58,9 +59,9 @@ function checarResultado(forcar = false) { // quando a batalha acaba (e a reprod
 }
 
 async function sairSala() {
-  const T = E.s?.torre, naTorre = T && E.s.fase === "batalha";
+  const T = E.s?.torre, naTorre = T && E.s.fase === "batalha", naRaid = E.s?.raid && E.s.fase === "batalha";
   const captura = capturaPendente(); // captura não terminada: sair faz o Pokémon ir embora
-  if (!confirm(captura ? "Você ainda não terminou a captura. Se sair agora, o Pokémon vai embora. Sair mesmo?" : naTorre ? `Sair da torre? A subida termina e você recebe o XP acumulado (${xpTorreTotal(T.n)} XP).` : "Sair da sala? Quando os dois jogadores saírem, a sala é apagada.")) return;
+  if (!confirm(captura ? "Você ainda não terminou a captura. Se sair agora, o Pokémon vai embora. Sair mesmo?" : naTorre ? `Sair da torre? A subida termina e você recebe o XP acumulado (${xpTorreTotal(T.n)} XP).` : naRaid ? "Sair da raid? O lendário vai embora e você perde a chance de capturá-lo." : "Sair da sala? Quando os dois jogadores saírem, a sala é apagada.")) return;
   if (naTorre) { try { await encerrarTorre(E.codigo, E.papel); await contabilizarResultado(E.codigo, E.papel); } catch(e) { console.error("Torre não encerrada:", e); } }
   else await checarResultado(true); // quem sai logo depois do fim ainda recebe o resultado
   if (captura) { try { await descartarCaptura(usuario().chave, E.codigo); } catch(e) {} }

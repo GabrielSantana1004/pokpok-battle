@@ -44,5 +44,8 @@ export const TORRE_NIVEL_MAIS = 5, TORRE_NIVEL_CHEFE_MAIS = 15; // nível do adv
 export const xpTorre = n => n >= 1 ? Math.round(TORRE_CRESCIMENTO ** (n - 1)) : 0; // XP da n-ésima vitória seguida
 export const xpTorreTotal = n => { let t = 0; for (let i = 1; i <= n; i++) t += xpTorre(i); return t; } // XP acumulado depois de n vitórias
 
+// ----- Raid: vencer o lendário rende bastante XP (e a chance de capturá-lo); perder rende o XP de derrota -----
+export const XP_RAID = 100;
+
 // ----- Caixas: cada nível da conta rende 1 caixa (guardada; a abertura chega com os itens). caixasAbertas conta as já abertas. -----
 export const caixasLivres = d => Math.max(0, infoNivel(xpDe(d)).nivel - (d?.caixasAbertas || 0));

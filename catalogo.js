@@ -4,6 +4,7 @@ import { carregarImagens } from "./imagem.js";
 import { golpesDe } from "./golpesdb.js";
 import { resumoEfeitos } from "./motor.js";
 import { usuario, lerShinyEspecies } from "./usuarios.js";
+import { tagLendario } from "./pokemons.js";
 const leitura = document.body.dataset.leitura === "1"; // dentro da sala: só leitura
 if (!leitura) nav();
 const $ = id => document.getElementById(id);
@@ -14,7 +15,7 @@ const badge = t => `<span class="tipo t-${esc(t)}">${esc(t)}</span>`;
 function card(p) {
   return `<article class="card">
     <img class="foto" data-pokemon="${esc(p.nome)}"${meus[p.id] ? ' data-shiny="1"' : ""} alt="${esc(p.nome)}" loading="lazy">
-    <h3>${esc(p.nome)}${meus[p.id] ? " ✨" : ""}${p.megas?.length ? ' <small title="Pode megaevoluir: ' + esc(p.megas.map(m => m.nome).join(", ")) + '">⚡ Mega</small>' : ""}</h3>
+    <h3>${esc(p.nome)}${meus[p.id] ? " ✨" : ""} ${tagLendario(p.nome)}${p.megas?.length ? ' <small title="Pode megaevoluir: ' + esc(p.megas.map(m => m.nome).join(", ")) + '">⚡ Mega</small>' : ""}</h3>
     <div class="tipos">${p.tipos.map(badge).join("")}</div>
     <div class="stats">${STATS.map(s => `<div><small>${s[1]}</small><b>${p[s[0]]}</b></div>`).join("")}</div>
   </article>`;

@@ -6,8 +6,10 @@ import { sortearEquipe } from "./bot.js";
 import { ehLendario } from "./pokemons.js";
 import { BOT, botEscolha, botTroca } from "./botia.js";
 import { listar } from "./firebase.js";
-import { usuario, refUsuario, VITORIAS_POR_REVIVER } from "./usuarios.js";
-import { XP_DERROTA, xpDe, infoNivel, xpTorreTotal, xpVitoriaBot, nivelDoBot, XP_VITORIA } from "./nivel.js";
+import { usuario, refUsuario, VITORIAS_POR_REVIVER, lerPokemons, lerRaidCapturados } from "./usuarios.js";
+import { habilidadeOculta } from "./habilidades.js";
+import { escolherChefe, HP_RAID } from "./raid.js";
+import { XP_DERROTA, xpDe, infoNivel, xpTorreTotal, xpVitoriaBot, nivelDoBot, XP_VITORIA, XP_RAID } from "./nivel.js";
 import { filaTorre, torreAvancar, reescalar, nivelNaTorre, copiaBot } from "./torre.js";
 import { golpeZ } from "./zmoves.js";
 import { resolverRodada, copiaPokemon, megaBloqueada, adv, ativoDe, precisaTrocar, podeTrocar, enviar, fimDeBatalha, iniciarBatalha } from "./motor.js";
@@ -49,13 +51,24 @@ async function jogadorTorre() {
   const primeiro = fila.shift();
   return {bot: {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: [primeiro]}, torre: {n: 0, andar: 1, total: fila.length + 1, fila}};
 }
-export async function criarSala(contraBot = false, nivelBot = "normal", modoTorre = false) {
-  const t = modoTorre ? await jogadorTorre() : null, bot = t ? t.bot : contraBot ? await jogadorBot(nivelBot) : null;
+// Raid: o adversário é UM lendário sorteado entre os que esta conta ainda não tem (e nunca capturou pela raid). O HP x6 é aplicado ao confirmar a equipe (junto com o nível).
+async function jogadorRaid() {
+  const u = usuario(); if (!u) throw new Error("Entre na sua conta em Meus Pokémon para enfrentar uma raid.");
+  const [cat, regs, capturados] = await Promise.all([listar(), lerPokemons(u.chave), lerRaidCapturados(u.chave)]);
+  const chefe = escolherChefe(cat, new Set(Object.values(regs).map(r => String(r.esp))), capturados);
+  if (!chefe) throw new Error("Você já tem todos os lendários que aparecem nas raids. Parabéns!");
+  const {equipe, mapa} = await sortearEquipe([chefe], 1, () => false, undefined, habilidadeOculta, () => itemDeBot("chefe")); // habilidade oculta e item raro, como os chefes da torre
+  const boss = copiaBot(equipe[0], mapa); boss.chefe = true;
+  return {bot: {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: [boss]}, raid: {esp: String(chefe.id), nome: chefe.nome}};
+}
+export async function criarSala(contraBot = false, nivelBot = "normal", modoTorre = false, modoRaid = false) {
+  const t = modoTorre ? await jogadorTorre() : null, r = modoRaid ? await jogadorRaid() : null, bot = t ? t.bot : r ? r.bot : contraBot ? await jogadorBot(nivelBot) : null;
+  if (r) nivelBot = "dificil"; // o chefe da raid joga como o bot difícil
   for (let i = 0; i < 5; i++) {
     const c = Array.from({length: 5}, () => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join("");
     const ok = await runTransaction(db, async tx => {
       if ((await tx.get(ref(c))).exists()) return false;
-      tx.set(ref(c), {fase:"equipes", rodada:1, j:{"1":null,"2":bot}, escolhas:{"1":null,"2":null}, ...(bot ? {bot:true, botNivel:nivelBot} : {}), ...(t ? {torre: t.torre} : {}),
+      tx.set(ref(c), {fase:"equipes", rodada:1, j:{"1":null,"2":bot}, escolhas:{"1":null,"2":null}, ...(bot ? {bot:true, botNivel:nivelBot} : {}), ...(t ? {torre: t.torre} : {}), ...(r ? {raid: r.raid} : {}),
         log:[], vencedor:null, expiraEm: Timestamp.fromMillis(Date.now() + 7 * 864e5)});
       return true;
     });
@@ -103,7 +116,11 @@ export const confirmarEquipe = (codigo, papel, equipe, mapa = {}) => mudar(codig
   if (s.fase !== "equipes" || !eu || eu.uid !== uid || eu.confirmada) throw new Error("Não é possível confirmar agora.");
   if (!equipe.length || equipe.length > 6) throw new Error("A equipe precisa ter de 1 a 6 Pokémon.");
   eu.equipe = equipe.map(p => copiaPokemon(p, mapa)); eu.ativo = 0; eu.confirmada = true; // cópia congelada na sala
-  if (s.bot && !s.torre && papel === "1") { // bot comum: o nível de todo o time dele acompanha o seu (fácil: menor · normal: média · difícil: maior)
+  if (s.raid && papel === "1") { // raid: o chefe luta no nível do seu Pokémon mais forte e entra com 6x o HP
+    const b = s.j["2"].equipe[0]; reescalar(b, nivelDoBot("dificil", eu.equipe.map(p => p.nivel || 50)));
+    b.hp = b.hpAtual = b.hp * HP_RAID;
+  }
+  if (s.bot && !s.torre && !s.raid && papel === "1") { // bot comum: o nível de todo o time dele acompanha o seu (fácil: menor · normal: média · difícil: maior)
     s.j["2"].equipe = s.j["2"].equipe.slice(0, eu.equipe.length); // o bot luta com o mesmo número de Pokémon que você (quem tem 1 só não enfrenta 6)
     const lvl = nivelDoBot(s.botNivel || "facil", eu.equipe.map(p => p.nivel || 50));
     for (const p of s.j["2"].equipe) reescalar(p, lvl);
@@ -143,11 +160,12 @@ function registrar(s, papel, esc) {
   if (esc.z) { // golpe Z: 1 por equipe e por batalha (o cristal é gasto na mesma transação, em usarItem)
     const A = ativoDe(eu), V = A.vol || {};
     if (esc.tipo !== "golpe") throw new Error("O golpe Z só vale junto com um golpe.");
-    if (esc.mega != null || A.slugMega) throw new Error("Golpe Z e megaevolução não se combinam: um Pokémon megaevoluído não usa golpe Z.");
-    if (eu.zUsada) throw new Error("Sua equipe já usou o golpe Z nesta batalha.");
+    // Raid: o golpe Z vale também para um Pokémon que JÁ megaevoluiu (não na mesma jogada) e cada Pokémon pode usá-lo uma vez; nas outras salas é 1 por equipe e sem mega
+    if (esc.mega != null || (A.slugMega && !s.raid)) throw new Error(s.raid ? "Megaevolução e golpe Z não podem ser usados na mesma jogada." : "Golpe Z e megaevolução não se combinam: um Pokémon megaevoluído não usa golpe Z.");
+    if (s.raid ? A.zUsou : eu.zUsada) throw new Error(s.raid ? `${A.nome} já usou o golpe Z nesta raid.` : "Sua equipe já usou o golpe Z nesta batalha.");
     if (V.recarga || V.carga != null || V.furia || (V.encore && V.encore.n > 0)) throw new Error("Seu Pokémon está com o golpe travado: não dá para usar golpe Z agora.");
     if (!golpeZ(A.mv[esc.idx])) throw new Error("Só golpes de dano viram golpe Z.");
-    eu.zUsada = true;
+    if (s.raid) A.zUsou = true; else eu.zUsada = true;
   }
   s.escolhas[papel] = {tipo: esc.tipo, idx: esc.idx, mega: esc.mega ?? null, z: !!esc.z};
   if (s.bot) s.escolhas[BOT] = botEscolha(s); // o bot escolhe um golpe aleatório na hora
@@ -178,6 +196,18 @@ export const contabilizarResultado = (codigo, papel) => runTransaction(db, async
   const snap = await tx.get(ref(codigo));
   if (!snap.exists()) return false;
   const s = snap.data(), eu = s.j[papel];
+  if (s.raid) { // Raid: XP (mais alto se vencer, só o de derrota se perder). Vencer abre a captura do lendário (sem fuga); sem vitória, poção nem ranking.
+    if (s.fase !== "fim" || !s.vencedor || s.desistiu || !eu || eu.uid !== uid || !eu.chave || eu.resultado) return false;
+    const us = await tx.get(refUsuario(eu.chave));
+    if (!us.exists()) return false;
+    const d = us.data(), venceu = s.vencedor === papel, ganho = venceu ? XP_RAID : XP_DERROTA, xp = xpDe(d) + ganho, antes = infoNivel(xpDe(d)).nivel, depois = infoNivel(xp).nivel;
+    const caps = (d.capturas || []).filter(c => c.sala !== codigo); // mantém as capturas pendentes de outras salas
+    tx.update(refUsuario(eu.chave), {xp, ...(venceu ? {capturas: [...caps, {tipo: "raid", esp: s.raid.esp, sala: codigo}]} : {})});
+    eu.resultado = {xp: ganho, nivelNovo: depois > antes ? depois : null};
+    if (venceu) s.capturaGanha = "raid";
+    tx.set(ref(codigo), s);
+    return {vitorias: d.vitorias || 0, xp, nick: d.nick || eu.chave, chave: eu.chave};
+  }
   if (s.torre) { // Torre: só XP (2^n − 1 por n Pokémon derrotados). Sem vitória, poção nem Reviver.
     if (s.fase !== "fim" || !eu || eu.uid !== uid || !eu.chave || eu.resultado) return false;
     const us = await tx.get(refUsuario(eu.chave));

@@ -26,10 +26,10 @@ export async function iniciarCaptura() {
 function abrirTela() {
   const p = E.todos.find(x => x.id === C.atual.esp);
   if (!p) { C.resumo = "Esse Pokémon não está mais no catálogo."; C.atual = null; E.render(); return; }
-  const lend = C.atual.tipo === "lendario";
+  const raid = C.atual.tipo === "raid", lend = raid || C.atual.tipo === "lendario"; // raid: o lendário vencido nunca foge
   const t = C.tela = document.createElement("div");
   t.className = "cap-tela" + (lend ? " lendario" : "");
-  t.innerHTML = `<div class="cap-topo">${lend ? "⭐ Um lendário apareceu!" : "🎯 Captura"}</div>
+  t.innerHTML = `<div class="cap-topo">${raid ? "🐉 Raid vencida!" : lend ? "⭐ Um lendário apareceu!" : "🎯 Captura"}</div>
     <div class="cap-palco">
       <div class="cap-sombra"></div>
       <div class="cap-pokemon">${spriteImg(p.nome, "frente")}</div>
@@ -50,7 +50,7 @@ function abrirTela() {
   });
   botoes(["lancar", "soltar"]);
   tentativas();
-  dizer(lend ? `Um ${p.nome} lendário apareceu! Ele é bem mais difícil de capturar.` : `${p.nome}, um dos Pokémon do bot que você derrotou, está pronto para ser capturado!`);
+  dizer(raid ? `${p.nome} está exausto depois da raid! Ele não consegue fugir: lance a Pokébola quantas vezes precisar.` : lend ? `Um ${p.nome} lendário apareceu! Ele é bem mais difícil de capturar.` : `${p.nome}, um dos Pokémon do bot que você derrotou, está pronto para ser capturado!`);
 }
 const tentativas = () => { const e = C.tela?.querySelector(".cap-tent"); if (e) e.textContent = C.atual?.tentativas ? ` · tentativas: ${C.atual.tentativas}` : ""; };
 function botoes(lista, extra = "") {
