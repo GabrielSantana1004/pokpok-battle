@@ -4,6 +4,8 @@
    (style.css, visual.css, telas.css, sala.css). Para mudar o clima do jogo, mexa nas variáveis abaixo.
    ========================================================== */
 
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap");
+
 :root {
     --red: #e63946;
     --red-dark: #a4161a;
@@ -750,3 +752,218 @@ body.pagina-sala.em-batalha {
 .troca-lista { list-style: none; padding: 0; }
 .troca-item { padding: 8px 0; border-bottom: 1px solid rgba(128, 128, 128, .25); }
 .trocas select, .trocas input { max-width: 100%; }
+
+
+/* ==========================================================
+   POLIMENTO GERAL — páginas normais (lobby, Meus Pokémon, catálogo, trocas, ranking…)
+   Tudo aqui fica fora da batalha (body.em-batalha), que continua exatamente como era.
+   ========================================================== */
+
+/* na batalha, as fontes continuam as do sistema (o HUD foi ajustado para elas) */
+body.em-batalha { --fonte-titulo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fonte: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+::selection { background: var(--yellow); color: var(--ink); }
+html { scrollbar-color: #8fa4ee transparent; scrollbar-width: thin; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #9fb1ef; border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--blue); background-clip: content-box; }
+
+/* fundo: bolinhas suaves, como o chão de um mapa */
+body:not(.em-batalha)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(rgba(47, 91, 234, .09) 1.6px, transparent 1.8px) 0 0 / 26px 26px,
+                radial-gradient(rgba(230, 57, 70, .07) 1.6px, transparent 1.8px) 13px 13px / 26px 26px; }
+
+/* cabeçalho: brilho que passa de vez em quando e leve relevo */
+body:not(.em-batalha) .topo { background: linear-gradient(135deg, #ee3b49 0 55%, #ff7a59), var(--red); box-shadow: 0 6px 0 var(--red-dark), 0 14px 26px rgba(164, 22, 26, .25); }
+body:not(.em-batalha) .topo::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .28) 45%, transparent 60%) -150% 0 / 60% 100% no-repeat, linear-gradient(rgba(255, 255, 255, .22), transparent 45%);
+    animation: topo-brilho 7s ease-in-out infinite; }
+@keyframes topo-brilho { 0%, 60% { background-position: -150% 0, 0 0; } 100% { background-position: 260% 0, 0 0; } }
+
+/* título da página com uma pokébola */
+body:not(.em-batalha) .titulo-pagina { display: flex; align-items: center; gap: 10px; margin: 16px 0 2px; font-size: 1.75rem; color: var(--blue-dark); }
+body:not(.em-batalha) .titulo-pagina::before { content: ""; flex: none; width: 24px; height: 24px; border-radius: 50%; border: 3px solid var(--ink); box-sizing: border-box;
+    background: radial-gradient(circle, #fff 0 22%, var(--ink) 24% 34%, transparent 36%), linear-gradient(var(--red) 0 44%, var(--ink) 44% 56%, #fff 56%); box-shadow: 0 3px 0 rgba(27, 31, 59, .2); }
+
+/* navegação: ícones e página atual destacada */
+nav a[href="meus.html"]::before { content: "🎒 "; }
+nav a[href="index.html"]::before { content: "⚔️ "; }
+nav a[href="catalogo.html"]::before { content: "📖 "; }
+nav a[href="trocas.html"]::before { content: "🔁 "; }
+nav a[href="ranking.html"]::before { content: "🏆 "; }
+nav a[aria-current="page"] { color: #fff; background: linear-gradient(#4a74ff, var(--blue)); box-shadow: 0 3px 0 var(--blue-dark); }
+nav a[aria-current="page"]:hover { background: linear-gradient(#5a82ff, #3a63f0); color: #fff; box-shadow: 0 4px 0 var(--blue-dark); }
+
+/* cartões e seções */
+body:not(.em-batalha) section { background: radial-gradient(circle at 100% 0, rgba(230, 57, 70, .07) 0 110px, transparent 111px), linear-gradient(#fff, #f8faff); animation: secao-entra .35s ease-out backwards; }
+body:not(.em-batalha) section section { background: var(--panel); animation: none; }
+@keyframes secao-entra { from { opacity: 0; translate: 0 10px; } }
+body:not(.em-batalha) section > h2:first-child { display: flex; align-items: center; gap: 8px; }
+body:not(.em-batalha) section > h2:first-child::after { content: ""; flex: 1; height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--yellow), transparent); opacity: .7; }
+
+/* lobby */
+.acoes-lobby section { transition: transform .18s, box-shadow .18s; }
+.acoes-lobby section:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(27, 58, 168, .2); }
+.acoes-lobby .icone { width: 72px; height: 72px; font-size: 2.3rem; box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--line), 0 8px 16px rgba(27, 58, 168, .18); }
+.campo-codigo input { background: #fffdf0; border-color: #f0d36a; }
+.subtitulo { font-weight: 600; color: #4a5278; }
+
+/* barra de busca / filtros */
+.filtros { padding: 10px 12px; border-radius: 16px; background: linear-gradient(#f4f7ff, #eaf0ff); border: 2px solid var(--line); box-shadow: inset 0 2px 4px rgba(27, 58, 168, .06); }
+input[type=search] { padding-left: 34px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%232f5bea' stroke-width='3' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5'/%3E%3Cpath d='M15 15l6 6'/%3E%3C/svg%3E") 10px 50% / 18px no-repeat; }
+#contagem { font-weight: 700; color: var(--blue-dark); }
+
+/* cartões de Pokémon: cor do primeiro tipo no topo, na foto e na borda */
+.card { --tc: #9fb1ef; position: relative; overflow: hidden;
+    border-color: color-mix(in srgb, var(--tc) 45%, #fff); box-shadow: 0 3px 0 color-mix(in srgb, var(--tc) 40%, #fff);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tc) 22%, #fff) 0, #fff 190px); }
+.card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--tc); }
+.card:hover { border-color: var(--tc); box-shadow: 0 9px 0 color-mix(in srgb, var(--tc) 30%, #fff), 0 14px 24px rgba(27, 31, 59, .12); }
+.card .foto { box-shadow: 0 0 0 3px color-mix(in srgb, var(--tc) 55%, #fff), 0 8px 16px rgba(27, 31, 59, .16); }
+.card .golpes li { padding: 4px 8px; border-radius: 10px; background: var(--panel); }
+.card .acoes { flex-wrap: wrap; }
+.card:has(.tipos .tipo:first-child.t-Normal) { --tc: #a8a77a; }
+.card:has(.tipos .tipo:first-child.t-Fire) { --tc: #ee8130; }
+.card:has(.tipos .tipo:first-child.t-Water) { --tc: #6390f0; }
+.card:has(.tipos .tipo:first-child.t-Electric) { --tc: #f7d02c; }
+.card:has(.tipos .tipo:first-child.t-Grass) { --tc: #7ac74c; }
+.card:has(.tipos .tipo:first-child.t-Ice) { --tc: #96d9d6; }
+.card:has(.tipos .tipo:first-child.t-Fighting) { --tc: #c22e28; }
+.card:has(.tipos .tipo:first-child.t-Poison) { --tc: #a33ea1; }
+.card:has(.tipos .tipo:first-child.t-Ground) { --tc: #e2bf65; }
+.card:has(.tipos .tipo:first-child.t-Flying) { --tc: #a98ff3; }
+.card:has(.tipos .tipo:first-child.t-Psychic) { --tc: #f95587; }
+.card:has(.tipos .tipo:first-child.t-Bug) { --tc: #a6b91a; }
+.card:has(.tipos .tipo:first-child.t-Rock) { --tc: #b6a136; }
+.card:has(.tipos .tipo:first-child.t-Ghost) { --tc: #735797; }
+.card:has(.tipos .tipo:first-child.t-Dragon) { --tc: #6f35fc; }
+.card:has(.tipos .tipo:first-child.t-Dark) { --tc: #705746; }
+.card:has(.tipos .tipo:first-child.t-Steel) { --tc: #b7b7ce; }
+.card:has(.tipos .tipo:first-child.t-Fairy) { --tc: #d685ad; }
+
+/* abas */
+.aba { font-weight: 600; letter-spacing: .01em; }
+.aba.ativa { box-shadow: 0 -4px 0 var(--blue-dark) inset; }
+
+/* ranking: mais "pódio" */
+.ranking li { transition: transform .15s, box-shadow .15s; box-shadow: 0 3px 0 var(--line); }
+.ranking li:hover { transform: translateX(4px); }
+.ranking li:nth-child(1) { box-shadow: 0 3px 0 #e0b400, 0 8px 18px rgba(240, 196, 25, .3); }
+
+@media (max-width: 560px) {
+    body:not(.em-batalha) { padding: 8px; }
+    body:not(.em-batalha) section { padding: 12px; border-radius: 16px; }
+    body:not(.em-batalha) .titulo-pagina { font-size: 1.45rem; }
+    .acoes-lobby { grid-template-columns: 1fr; }
+    nav a { padding: 6px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body:not(.em-batalha) .topo::before, body:not(.em-batalha) section { animation: none !important; }
+    .acoes-lobby section:hover, .ranking li:hover { transform: none; }
+}
+
+
+/* ==========================================================
+   TROCAS — "mesa de troca" (trocas.html / trocas.js)
+   ========================================================== */
+body:not(.em-batalha) section#trocas { max-width: 860px; margin: 14px auto; padding: 0; border: 0; background: none; box-shadow: none; animation: none; display: flex; flex-direction: column; gap: 16px; }
+.tr-bloco { padding: 16px 18px 18px; border-radius: 20px; border-top: 6px solid var(--red); background: linear-gradient(#fff, #f8faff); box-shadow: var(--sombra); }
+.tr-bloco h2 { margin: 0 0 12px; }
+.tr-sub { margin: 14px 0 8px; font-size: 1rem; color: var(--blue-dark); }
+.tr-passos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; list-style: none; margin: 0 0 12px; padding: 0; }
+.tr-passos li { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; background: var(--panel); font-size: .82rem; font-weight: 700; line-height: 1.2; }
+.tr-passos b { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(#ff5a67, var(--red)); color: #fff; font-size: .8rem; }
+
+/* a cena: dois Pokémon sobre plataformas de grama, frente a frente */
+.tr-cena { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 6px; padding: 30px 14px 16px; border-radius: 18px; overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, .85), transparent 55%), linear-gradient(#bcd9ff 0, #e6f1ff 58%, #a8dc8c 58.1%, #7fc566 100%);
+    border: 3px solid #fff; box-shadow: 0 0 0 2px var(--line), inset 0 -10px 24px rgba(30, 90, 30, .18); }
+.tr-lado { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.tr-rotulo { position: absolute; top: -22px; left: 50%; translate: -50% 0; padding: 2px 12px; border-radius: 999px; background: rgba(27, 31, 59, .78); color: #fff; font-family: var(--fonte-titulo); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.tr-previa { display: contents; }
+.tr-peca { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%; text-align: center; animation: tr-chega .35s ease-out backwards; }
+@keyframes tr-chega { from { opacity: 0; translate: 0 12px; scale: .94; } }
+.tr-peca b { font-family: var(--fonte-titulo); font-size: 1.05rem; color: var(--ink); padding: 1px 12px; border-radius: 999px; background: rgba(255, 255, 255, .85); }
+.tr-peca small { font-weight: 700; color: #3d4770; }
+.tr-foto { position: relative; width: 150px; height: 150px; display: grid; place-items: center; }
+.tr-foto::after { content: ""; position: absolute; left: 50%; bottom: -8px; width: 150%; height: 34px; translate: -50% 0; border-radius: 50%; z-index: 0;
+    background: radial-gradient(ellipse at 50% 35%, #8ad46c 0 55%, #4f9f3d 80%, #3b7d2e 100%); border: 2px solid rgba(255, 255, 255, .45); box-shadow: 0 8px 12px rgba(0, 0, 0, .2); }
+.tr-foto img.foto { position: relative; z-index: 1; width: 100%; height: 100%; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; filter: drop-shadow(0 8px 5px rgba(0, 0, 0, .3)); animation: tr-flutua 3s ease-in-out infinite; }
+@keyframes tr-flutua { 50% { translate: 0 -5px; } }
+.tr-peca.shiny .tr-foto img.foto { filter: drop-shadow(0 0 10px rgba(255, 214, 80, .95)) drop-shadow(0 8px 5px rgba(0, 0, 0, .3)); }
+.tr-peca.shiny b { background: linear-gradient(90deg, #fff4bd, #fff); }
+.tr-iv { position: relative; width: 78%; max-width: 170px; height: 18px; border-radius: 999px; background: rgba(27, 31, 59, .55); overflow: hidden; box-shadow: inset 0 2px 3px rgba(0, 0, 0, .3); margin-top: 6px; }
+.tr-iv i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: linear-gradient(90deg, #36c46a, #9be15d); }
+.tr-iv span { position: relative; display: block; text-align: center; font-size: .7rem; font-weight: 800; line-height: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+/* Pokémon escondido */
+.tr-misterio .tr-foto span { display: grid; place-items: center; width: 78%; height: 78%; border-radius: 50%; font-family: var(--fonte-titulo); font-size: 4rem; color: #fff; position: relative; z-index: 1;
+    background: radial-gradient(circle at 35% 30%, #8e7bff, #4b3bb8 70%); box-shadow: 0 0 0 4px rgba(255, 255, 255, .6), 0 0 22px rgba(120, 100, 255, .7); animation: tr-pulsa 2s ease-in-out infinite; }
+@keyframes tr-pulsa { 50% { scale: 1.07; box-shadow: 0 0 0 4px rgba(255, 255, 255, .8), 0 0 32px rgba(150, 130, 255, .9); } }
+/* seta de troca no meio */
+.tr-meio { align-self: center; display: grid; place-items: center; width: 60px; height: 60px; margin-bottom: 30px; border-radius: 50%; font-size: 1.9rem; font-weight: 800; color: var(--ink);
+    background: radial-gradient(circle at 35% 30%, #fff1a0, var(--yellow) 65%, #e6a800); border: 3px solid #fff; box-shadow: 0 4px 0 #c9a000, 0 0 20px rgba(255, 203, 5, .7); animation: tr-brilha 2.4s ease-in-out infinite; }
+@keyframes tr-brilha { 50% { box-shadow: 0 4px 0 #c9a000, 0 0 32px rgba(255, 203, 5, 1); scale: 1.06; } }
+
+/* seletor: grade de miniaturas dos seus Pokémon */
+.tr-picker { display: flex; flex-direction: column; gap: 8px; }
+.tr-busca { margin: 0; width: 100%; }
+.tr-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; max-height: 300px; overflow-y: auto; padding: 8px; border-radius: 16px; background: var(--panel); border: 2px solid var(--line); box-shadow: inset 0 2px 5px rgba(27, 58, 168, .08); }
+.tr-op { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; margin: 0; padding: 6px 4px 7px; border: 2px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 3px 0 var(--line); font-weight: 600; line-height: 1.15; }
+.tr-op[hidden] { display: none; }
+.tr-op:hover { background: #f4f8ff; border-color: #9fb1ef; transform: translateY(-2px); box-shadow: 0 5px 0 var(--line); }
+.tr-op img.foto { width: 60px; height: 60px; margin: 0; }
+.tr-op b { font-family: var(--fonte-titulo); font-size: .8rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-op small { font-size: .68rem; color: #4a5278; font-weight: 700; }
+.tr-op.marcada { border-color: var(--blue); background: linear-gradient(#eef3ff, #dfe8ff); box-shadow: 0 0 0 3px rgba(47, 91, 234, .28), 0 3px 0 var(--blue-dark); }
+.tr-op.marcada::after { content: "✔"; position: absolute; top: -7px; right: -7px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: .75rem; box-shadow: 0 2px 0 var(--blue-dark); }
+
+.tr-convite { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+.tr-convite input { flex: 1 1 220px; margin: 0; min-width: 0; }
+.tr-convite button { margin: 0; flex: none; }
+.tr-como { margin-top: 12px; padding: 8px 12px; border-radius: 12px; background: var(--blue-soft); font-size: .9rem; }
+.tr-como summary { cursor: pointer; font-weight: 700; color: var(--blue-dark); }
+.tr-como p { margin: 8px 0 2px; }
+
+/* troca em andamento */
+.tr-troca { margin-top: 12px; padding: 12px; border-radius: 18px; background: #fff; border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line); }
+.tr-troca:first-of-type { margin-top: 0; }
+.tr-cabeca { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 10px; font-family: var(--fonte-titulo); font-size: 1.05rem; }
+.tr-status { padding: 2px 12px; border-radius: 999px; background: #e8ecf8; font-family: var(--fonte-titulo); font-size: .8rem; font-weight: 600; white-space: nowrap; }
+.tr-aguardando .tr-status { background: #fff0b3; color: var(--yellow-dark); }
+.tr-revelada .tr-status { background: #dfe8ff; color: var(--blue-dark); }
+.tr-aceita .tr-status { background: #c9f4d2; color: var(--green-dark); }
+.tr-recusada .tr-status, .tr-cancelada .tr-status { background: #ffe0e3; color: var(--red-dark); }
+.tr-nota { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 8px; font-size: .92rem; color: #3d4770; }
+.tr-conf { padding: 3px 12px; border-radius: 999px; background: #fff0b3; font-weight: 700; }
+.tr-conf.ok { background: #c9f4d2; color: var(--green-dark); }
+.tr-botoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tr-botoes:empty { display: none; }
+.tr-botoes button { margin: 0; }
+
+/* histórico */
+.tr-hist-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.tr-hist { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 14px; background: var(--panel); border: 2px solid var(--line); }
+.tr-mini { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #fff 0 35%, var(--blue-soft) 75%); box-shadow: 0 0 0 2px var(--line); font-weight: 800; color: #7a84ad; }
+.tr-mini img.foto { width: 100%; height: 100%; margin: 0; border: 0; box-shadow: none; background: none; border-radius: 50%; }
+.tr-seta { flex: none; font-weight: 800; color: var(--blue); }
+.tr-hist-txt { flex: 1; min-width: 0; font-size: .88rem; line-height: 1.3; }
+.tr-cancelada .tr-mini, .tr-recusada .tr-mini { filter: grayscale(.8); opacity: .75; }
+.tr-vazio { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px; border-radius: 16px; border: 2px dashed var(--line); color: #4a5278; font-weight: 700; text-align: center; }
+.tr-vazio span { font-size: 2.2rem; }
+.tr-vazio p { margin: 0; }
+
+@media (max-width: 560px) {
+    .tr-bloco { padding: 12px; border-radius: 16px; }
+    .tr-passos { grid-template-columns: 1fr 1fr; }
+    .tr-cena { padding: 28px 6px 14px; gap: 2px; }
+    .tr-foto { width: 104px; height: 104px; }
+    .tr-misterio .tr-foto span { font-size: 2.6rem; }
+    .tr-meio { width: 42px; height: 42px; font-size: 1.3rem; margin-bottom: 36px; }
+    .tr-peca b { font-size: .9rem; padding: 1px 8px; }
+    .tr-grade { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); max-height: 260px; }
+    .tr-hist { flex-wrap: wrap; }
+    .tr-hist-txt { flex: 1 1 100%; order: 5; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tr-peca, .tr-foto img.foto, .tr-misterio .tr-foto span, .tr-meio { animation: none !important; }
+}

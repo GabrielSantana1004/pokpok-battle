@@ -13,8 +13,10 @@ export function nav() {
   let u = null; try { u = JSON.parse(localStorage.getItem("pbb_user")); } catch(e) {}
   document.getElementById("nav").innerHTML =
     '<a href="meus.html">Meus Pokémon</a><a href="index.html">Batalha</a><a href="catalogo.html">Catálogo</a><a href="trocas.html">Trocas</a><a href="ranking.html">Ranking</a>' +
-    (u ? `<span class="nav-user">${esc(u.nick)} <span id="nav-status"></span> · <a href="#" id="nav-sair">Sair</a></span>` : "");
+    (u ? `<span class="nav-user">${esc(u.nick || u.chave)} <span id="nav-status"></span> · <a href="#" id="nav-sair">Sair</a></span>` : "");
   if (u) import("./usuarios.js").then(m => m.lerStatus(u.chave)).then(st => { const e = document.getElementById("nav-status"); if (e) e.textContent = `· ⭐ Nv ${st.nivel} · 🏆 ${st.vitorias} · 🧪 ${st.pocoes} · 💫 ${st.revives} · 💎 ${st.zcristais || 0}${st.caixas > 0 ? ` · 📦 ${st.caixas}` : ""}`; }).catch(() => {});
+  const atual = location.pathname.split("/").pop() || "index.html"; // destaca a página atual
+  document.querySelectorAll("#nav > a").forEach(a => { if (a.getAttribute("href") === atual) a.setAttribute("aria-current", "page"); });
   const sair = document.getElementById("nav-sair");
   if (sair) sair.onclick = e => { e.preventDefault(); localStorage.removeItem("pbb_user"); location.reload(); };
 }
