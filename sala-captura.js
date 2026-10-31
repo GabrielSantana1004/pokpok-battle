@@ -55,7 +55,7 @@ function abrirTela() {
 const tentativas = () => { const e = C.tela?.querySelector(".cap-tent"); if (e) e.textContent = C.atual?.tentativas ? ` · tentativas: ${C.atual.tentativas}` : ""; };
 function botoes(lista, extra = "") {
   const B = {lancar: `<button class="primario cap-lancar" data-a="lancar">Lançar Pokébola</button>`, soltar: `<button class="cap-soltar" data-a="soltar">Deixar ir embora</button>`,
-    continuar: `<button class="primario" data-a="continuar">Continuar</button>`, meus: `<a class="cap-link" href="meus.html">Ver em Meus Pokémon</a>`};
+    continuar: `<button class="primario" data-a="continuar">Continuar</button>`};
   C.tela.querySelector(".cap-botoes").innerHTML = lista.map(k => B[k]).join("") + extra;
 }
 function fechar() { clearInterval(C.digita); C.tela?.remove(); C.tela = null; document.body.classList.remove("cap-aberta"); E.render(); }
@@ -98,7 +98,7 @@ const acao = {
       const resumo = `🎉 Você capturou ${esc(nome)}${pk.shiny ? " ✨ shiny" : ""}! IVs ${somaIvs(pk.ivs)}/${IV_STATS.length * IV_MAX}.`;
       C.resumo = resumo;
       await dizer(`Gotcha! ${nome}${pk.shiny ? " ✨ (shiny!)" : ""} foi capturado! IVs ${somaIvs(pk.ivs)}/${IV_STATS.length * IV_MAX}. Ele já está em Meus Pokémon.`);
-      botoes(["meus", "continuar"]);
+      botoes(["continuar"]);
     } else if (r.resultado === "escapou") {
       C.atual = {...C.atual, tentativas: r.tentativas}; tentativas();
       await abrirBola(bola, poke, fx);

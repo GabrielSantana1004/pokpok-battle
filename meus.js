@@ -45,6 +45,13 @@ function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica f
   const com = cat.filter(p => p.aprende?.length);
   const q = $("busca").value.trim().toLowerCase(), t = $("filtro").value;
   const so = $("so-shiny").checked, vistos = com.filter(p => p.nome.toLowerCase().includes(q) && (!t || p.tipos.includes(t)) && (!so || shiny[p.id]));
+  const o = $("ordem").value, porNome = (a, b) => a.nome.localeCompare(b.nome, "pt-BR");
+  if (o) vistos.sort((a, b) => ({ // Array.sort é estável: em empate, mantém a ordem de antes
+    nome: () => porNome(a, b), "nome-desc": () => porNome(b, a),
+    nivel: () => nivelDoPokemon(niveis, b.id) - nivelDoPokemon(niveis, a.id) || porNome(a, b),
+    ivs: () => somaIvs(b.ivs) - somaIvs(a.ivs) || porNome(a, b),
+    shiny: () => (shiny[b.id] ? 1 : 0) - (shiny[a.id] ? 1 : 0) || porNome(a, b)
+  })[o]());
   $("contagem").textContent = `${vistos.length} de ${com.length} Pokémon`;
   $("grade").innerHTML = vistos.map(p => {
     const mv = golpesDe(p);
@@ -147,6 +154,7 @@ async function remover() {
 $("filtro").innerHTML += TIPOS.map(t => `<option>${t}</option>`).join("");
 $("busca").oninput = grade;
 $("filtro").onchange = grade;
+$("ordem").onchange = grade;
 $("so-shiny").onchange = grade;
 $("grade").onchange = async e => { // shiny liga/desliga direto no cartão (só contas com permissão)
   const caixa = e.target.closest("[data-shiny-id]"); if (!caixa) return;

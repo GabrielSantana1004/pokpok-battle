@@ -39,6 +39,14 @@
         <section class="filtros">
             <input id="busca" type="search" placeholder="Buscar por nome">
             <select id="filtro"><option value="">Todos os tipos</option></select>
+            <select id="ordem" title="Ordenar por">
+                <option value="">Ordem padrão</option>
+                <option value="nome">Nome (A–Z)</option>
+                <option value="nome-desc">Nome (Z–A)</option>
+                <option value="nivel">Nível (maior primeiro)</option>
+                <option value="ivs">IVs (maior primeiro)</option>
+                <option value="shiny">✨ Shiny primeiro</option>
+            </select>
             <label class="so-shiny" title="Mostrar só os Pokémon shiny da sua conta"><input type="checkbox" id="so-shiny"> ✨ Só shiny</label>
             <span id="contagem"></span>
         </section>

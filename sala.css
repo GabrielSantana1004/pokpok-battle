@@ -775,30 +775,72 @@ button[onclick^="rmEq"]:hover {
 
 /* tela de captura (por cima da batalha) */
 body.cap-aberta { overflow: hidden; }
-.cap-tela { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 14px 14px 18px; gap: 10px; color: #fff; overflow-y: auto;
-  background: linear-gradient(#1b2a6b 0%, #4a79c9 38%, #8fd0ff 52%, #5aa84a 52.1%, #356f2e 100%); }
-.cap-tela.lendario { background: linear-gradient(#2b1450 0%, #6a3fb5 38%, #f0c35a 52%, #5a8f4a 52.1%, #2e5a2e 100%); }
-.cap-topo { font-weight: 800; font-size: 1.25rem; text-shadow: 0 2px 4px rgba(0,0,0,.5); }
-.cap-palco { position: relative; width: min(100%, 420px); height: 320px; flex: none; }
-.cap-sombra { position: absolute; left: 50%; bottom: 40px; width: 180px; height: 26px; margin-left: -90px; border-radius: 50%; background: rgba(0,0,0,.28); }
-.cap-pokemon { position: absolute; left: 0; right: 0; bottom: 52px; display: flex; justify-content: center; align-items: flex-end; transform-origin: 50% 100%; animation: cap-respira 2.4s ease-in-out infinite; }
-.cap-pokemon .sprite { max-height: 240px; margin-bottom: 0; filter: drop-shadow(0 6px 4px rgba(0,0,0,.35)); }
+.cap-tela { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 16px 14px 22px; gap: 12px; color: #fff; overflow-y: auto; isolation: isolate;
+  background: linear-gradient(#16235e 0%, #3a63b8 34%, #86c8ff 51%, #5aa84a 51.1%, #2f6a2c 100%); animation: cap-entra .35s ease-out; }
+.cap-tela.lendario { background: linear-gradient(#24104a 0%, #5e36a8 34%, #f3c866 51%, #5a8f4a 51.1%, #2a542a 100%); }
+@keyframes cap-entra { from { opacity: 0; } }
+/* cenário: sol, nuvens, colinas, faixas de grama e vinheta (fica parado atrás da tela que rola) */
+.cap-tela::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 38% at 50% 51%, rgba(255,255,255,.35), transparent 70%),
+    radial-gradient(circle at 82% 14%, rgba(255,240,170,.85) 0 3%, rgba(255,225,120,.35) 7%, transparent 22%),
+    radial-gradient(ellipse 90px 24px at 18% 16%, rgba(255,255,255,.55), transparent 70%),
+    radial-gradient(ellipse 130px 30px at 62% 26%, rgba(255,255,255,.42), transparent 70%),
+    radial-gradient(ellipse 100px 22px at 34% 36%, rgba(255,255,255,.35), transparent 70%),
+    radial-gradient(ellipse 60% 16% at 18% 52%, #4b9a42 0 60%, transparent 61%),
+    radial-gradient(ellipse 70% 14% at 84% 52%, #3f8a3a 0 60%, transparent 61%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 28px, rgba(0,0,0,.05) 28px 56px);
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 52%; }
+.cap-tela::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; box-shadow: inset 0 0 140px rgba(0,0,20,.55); }
+.cap-tela.lendario::before { background:
+    radial-gradient(circle at 50% 36%, rgba(255,230,140,.38), transparent 46%),
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 10%, rgba(255,255,255,.9) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 64% 28%, rgba(255,255,255,.8) 0 1px, transparent 2px),
+    radial-gradient(circle at 36% 8%, rgba(255,255,255,.8) 0 1.5px, transparent 2.5px),
+    radial-gradient(ellipse 60% 16% at 18% 52%, #4c8440 0 60%, transparent 61%),
+    radial-gradient(ellipse 70% 14% at 84% 52%, #3d7437 0 60%, transparent 61%),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 28px, rgba(0,0,0,.05) 28px 56px);
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 52%; }
+.cap-topo { padding: 6px 20px; border-radius: 999px; font-weight: 800; font-size: 1.2rem; letter-spacing: .02em; text-shadow: 0 2px 4px rgba(0,0,0,.55);
+  background: rgba(10,16,48,.45); border: 1px solid rgba(255,255,255,.35); box-shadow: 0 4px 14px rgba(0,0,0,.3); backdrop-filter: blur(4px); }
+.cap-tela.lendario .cap-topo { background: rgba(60,30,100,.55); border-color: rgba(255,224,130,.7); color: #ffe9a8; }
+.cap-palco { position: relative; width: min(100%, 420px); height: clamp(250px, 38vh, 320px); flex: none; }
+.cap-palco::before { content: ""; position: absolute; left: 50%; top: 4%; width: 300px; height: 300px; margin-left: -150px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255,255,255,.4), rgba(255,255,255,.12) 45%, transparent 70%); animation: cap-brilho 3.2s ease-in-out infinite; }
+.cap-tela.lendario .cap-palco::before { background: radial-gradient(circle, rgba(255,226,120,.6), rgba(255,200,90,.2) 45%, transparent 70%); }
+@keyframes cap-brilho { 50% { opacity: .65; transform: scale(1.06); } }
+/* plataforma de grama sob o Pokémon */
+.cap-sombra { position: absolute; left: 50%; bottom: 28px; width: 250px; height: 48px; margin-left: -125px; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 38%, #7ccb62 0 52%, #4c9a3c 70%, #2f6a2c 100%);
+  border: 2px solid rgba(255,255,255,.28); box-shadow: 0 10px 18px rgba(0,0,0,.35), inset 0 -5px 8px rgba(0,0,0,.22); }
+.cap-pokemon { position: absolute; left: 0; right: 0; bottom: 50px; display: flex; justify-content: center; align-items: flex-end; transform-origin: 50% 100%; animation: cap-respira 2.4s ease-in-out infinite; }
+.cap-pokemon .sprite { max-height: 240px; margin-bottom: 0; filter: drop-shadow(0 6px 4px rgba(0,0,0,.4)); }
+.cap-tela.lendario .cap-pokemon .sprite { filter: drop-shadow(0 0 14px rgba(255,220,110,.85)) drop-shadow(0 6px 4px rgba(0,0,0,.4)); }
 @keyframes cap-respira { 50% { translate: 0 -6px; } }
-.cap-bola { position: absolute; left: 50%; bottom: 14px; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; border: 3px solid #1a1a1a; opacity: 0; box-sizing: border-box;
-  background: linear-gradient(#e53935 0 44%, #1a1a1a 44% 56%, #fff 56%); box-shadow: 0 3px 6px rgba(0,0,0,.4); }
+.cap-bola { position: absolute; left: 50%; bottom: 20px; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; border: 3px solid #1a1a1a; opacity: 0; box-sizing: border-box;
+  background: linear-gradient(#e53935 0 44%, #1a1a1a 44% 56%, #fff 56%); box-shadow: 0 3px 6px rgba(0,0,0,.4), inset -4px -4px 6px rgba(0,0,0,.18), inset 3px 3px 5px rgba(255,255,255,.35); }
 .cap-bola::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; border: 3px solid #1a1a1a; box-sizing: border-box; }
-.cap-bola.capturada::after { background: #ffd54a; box-shadow: 0 0 10px #ffd54a; }
+.cap-bola.capturada::after { background: #ffd54a; box-shadow: 0 0 12px 3px #ffd54a; }
 .cap-bola.aberta { filter: brightness(2.2); }
 .cap-efeito { position: absolute; left: 0; right: 0; top: 80px; text-align: center; font-size: 2rem; opacity: 0; pointer-events: none; }
-.cap-info { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-.cap-caixa { width: min(100%, 460px); min-height: 84px; padding: 12px 16px; border-radius: 12px; background: rgba(12,16,40,.92); border: 3px solid #fff; box-shadow: 0 0 0 3px #1a1a1a, 0 6px 14px rgba(0,0,0,.4); font-size: 1.05rem; line-height: 1.4; }
+.cap-info { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; padding: 6px 16px; border-radius: 999px; font-size: 1.1rem; text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  background: rgba(10,16,48,.4); border: 1px solid rgba(255,255,255,.3); box-shadow: 0 3px 10px rgba(0,0,0,.25); }
+.cap-tent { font-size: .85rem; opacity: .85; }
+/* caixa de texto estilo Pokémon */
+.cap-caixa { position: relative; width: min(100%, 460px); min-height: 88px; padding: 14px 18px; border-radius: 14px; font-size: 1.05rem; line-height: 1.45;
+  background: linear-gradient(#1b2450, #0e1230); border: 3px solid #fff; box-shadow: 0 0 0 3px #1a1a1a, 0 0 0 5px rgba(255,255,255,.18), 0 10px 20px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.18); }
+.cap-tela.lendario .cap-caixa { border-color: #ffe08a; background: linear-gradient(#2d1b58, #150c30); }
 .cap-texto { margin: 0; }
-.cap-botoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.cap-botoes button, .cap-link { padding: 11px 20px; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: none; }
-.cap-lancar { background: #e53935; color: #fff; border: 2px solid #fff; }
-.cap-soltar { background: rgba(0,0,0,.35); color: #fff; border: 2px solid rgba(255,255,255,.6); }
-.cap-link { background: #ffd54a; color: #222; border: 2px solid #fff; }
-.cap-botoes .primario { background: #1e6bd6; color: #fff; border: 2px solid #fff; }
-.cap-botoes .cap-link { color: #222 !important; }
-.cap-botoes .cap-lancar { background: #e53935; }
-.cap-botoes .cap-link { background: #ffd54a !important; }
+.cap-botoes { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.cap-botoes button { min-width: 150px; padding: 12px 22px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; border: 2px solid #fff; color: #fff;
+  box-shadow: 0 5px 0 rgba(0,0,0,.35), 0 8px 14px rgba(0,0,0,.3); transition: transform .08s, box-shadow .08s, filter .15s; }
+.cap-botoes button:hover { filter: brightness(1.1); }
+.cap-botoes button:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.35), 0 3px 6px rgba(0,0,0,.3); }
+.cap-botoes button:focus-visible { outline: 3px solid #ffd54a; outline-offset: 2px; }
+.cap-lancar { background: linear-gradient(#f2504b, #c62824); }
+.cap-soltar { background: rgba(10,16,48,.55); border-color: rgba(255,255,255,.55); }
+.cap-botoes .primario { background: linear-gradient(#2f86ee, #1559bd); }
+.cap-botoes .cap-lancar { background: linear-gradient(#f2504b, #c62824); }
+@media (max-width: 480px) { .cap-botoes button { flex: 1 1 140px; } .cap-topo { font-size: 1.05rem; } }
+@media (prefers-reduced-motion: reduce) { .cap-tela, .cap-palco::before, .cap-pokemon { animation: none !important; } }
