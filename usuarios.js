@@ -14,7 +14,7 @@ const ref = k => doc(db, "usuarios", k);
 export const refUsuario = ref;
 const chaveDe = n => n.trim().toLowerCase();
 
-export const usuario = () => { try { return JSON.parse(localStorage.getItem(CH)); } catch(e) { return null; } }; // {nick, chave}
+export const usuario = () => { try { const u = JSON.parse(localStorage.getItem(CH)); return u && {...u, nick: u.nick || u.chave}; } catch(e) { return null; } }; // {nick, chave} — se a sessão não tiver nick, usa a chave
 export const sairConta = () => localStorage.removeItem(CH);
 
 async function hash(t) {
@@ -128,7 +128,7 @@ export async function criarConta(nick, senha) {
 export async function entrarConta(nick, senha) {
   const k = chaveDe(nick), s = await getDoc(ref(k));
   if (!s.exists() || s.data().senha !== await senhaHash(k, senha)) throw new Error("Nickname ou senha incorretos.");
-  return entrou(s.data().nick, k);
+  return entrou(s.data().nick || k, k); // conta antiga sem o campo nick: usa a chave
 }
 
 // builds do usuário: { idDoPokemon: [nomes dos golpes] }
