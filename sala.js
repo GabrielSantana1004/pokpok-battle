@@ -29,7 +29,7 @@ function desenhar() {
   else {
     const stj = k => { const j = s.j[k]; if (j && j.bot) return "bot (equipe pronta)"; return !j ? "aguardando entrar" : j.saiu ? "saiu" : j.confirmada ? "equipe confirmada" : "escolhendo equipe"; };
     let h = `<h2>Sala ${esc(E.codigo)}</h2><p>Você é <b>${E.jogador ? "Jogador " + E.papel : "espectador"}</b>. <button onclick="sairSala()">Sair da sala</button></p>`;
-    if (s.raid && s.fase !== "fim") h += `<p class="aviso-raid">🐉 <b>Raid:</b> ${esc(s.raid.nome)} (HP ×6). Leve até 6 Pokémon: megas à vontade e golpe Z para quem já megaevoluiu.</p>`;
+    if (s.raid && s.fase !== "fim") h += `<p class="aviso-raid">🐉 <b>Raid:</b> ${esc(s.raid.nome)} (HP ×6, IVs perfeitos e golpes escolhidos a dedo). Leve até 6 Pokémon: megas à vontade e golpe Z para quem já megaevoluiu.</p>`;
     if (s.fase === "fim") h += `<p>Sala encerrada: um dos jogadores saiu.</p>`;
     else h += `<p>Jogador 1: ${stj("1")} · Jogador 2: ${stj("2")}</p>` + (E.jogador ? telaEquipe() : "<p>Aguardando os jogadores montarem as equipes...</p>");
     $("conteudo").innerHTML = h;

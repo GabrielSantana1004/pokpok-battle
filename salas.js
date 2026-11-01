@@ -2,13 +2,13 @@ import "./firebase.js"; // inicializa o app com o seu firebaseConfig
 import { getFirestore, doc, getDoc, setDoc, runTransaction, onSnapshot, Timestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { itemDeBot } from "./itens.js";
-import { sortearEquipe } from "./bot.js";
-import { ehLendario } from "./pokemons.js";
+import { sortearEquipe, golpesDeChefe } from "./bot.js";
+import { ehLendario, IV_STATS, IV_MAX } from "./pokemons.js";
 import { BOT, botEscolha, botTroca } from "./botia.js";
 import { listar } from "./firebase.js";
 import { usuario, refUsuario, VITORIAS_POR_REVIVER, lerPokemons, lerRaidCapturados } from "./usuarios.js";
 import { habilidadeOculta } from "./habilidades.js";
-import { escolherChefe, HP_RAID } from "./raid.js";
+import { escolherChefe, chefesPossiveis, HP_RAID } from "./raid.js";
 import { XP_DERROTA, xpDe, infoNivel, xpTorreTotal, xpVitoriaBot, nivelDoBot, XP_VITORIA, XP_RAID } from "./nivel.js";
 import { filaTorre, torreAvancar, reescalar, nivelNaTorre, copiaBot } from "./torre.js";
 import { golpeZ } from "./zmoves.js";
@@ -55,9 +55,13 @@ async function jogadorTorre() {
 async function jogadorRaid() {
   const u = usuario(); if (!u) throw new Error("Entre na sua conta em Meus Pokémon para enfrentar uma raid.");
   const [cat, regs, capturados] = await Promise.all([listar(), lerPokemons(u.chave), lerRaidCapturados(u.chave)]);
-  const chefe = escolherChefe(cat, new Set(Object.values(regs).map(r => String(r.esp))), capturados);
-  if (!chefe) throw new Error("Você já tem todos os lendários que aparecem nas raids. Parabéns!");
+  const tem = new Set(Object.values(regs).map(r => String(r.esp)));
+  if (!chefesPossiveis(cat, tem, capturados).length) throw new Error("Você já tem todos os lendários que aparecem nas raids. Parabéns!");
+  const chefe = escolherChefe(cat, tem, capturados);
+  if (!chefe) throw new Error("Nenhum lendário apareceu desta vez (só falta um raríssimo). Tente de novo!");
   const {equipe, mapa} = await sortearEquipe([chefe], 1, () => false, undefined, habilidadeOculta, () => itemDeBot("chefe")); // habilidade oculta e item raro, como os chefes da torre
+  const mv = await golpesDeChefe(equipe[0], mapa); if (mv) equipe[0].mv = mv; // golpes escolhidos a dedo (os melhores de dano), não sorteados
+  equipe[0].ivs = Object.fromEntries(IV_STATS.map(k => [k, IV_MAX])); // IVs perfeitos
   const boss = copiaBot(equipe[0], mapa); boss.chefe = true;
   return {bot: {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: [boss]}, raid: {esp: String(chefe.id), nome: chefe.nome}};
 }

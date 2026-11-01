@@ -21,4 +21,12 @@ export const chefesPossiveis = (catalogo, tem = new Set(), jaCapturados = []) =>
   const fora = new Set([...tem, ...jaCapturados].map(String));
   return catalogo.filter(p => ehRaid(p.nome) && (p.aprende?.length || p.mv?.length) && !fora.has(String(p.id)));
 };
-export const escolherChefe = (catalogo, tem, jaCapturados, rng = Math.random) => { const l = chefesPossiveis(catalogo, tem, jaCapturados); return l.length ? l[Math.floor(rng() * l.length)] : null; };
+// O Mew é raríssimo: se ele ainda pode aparecer, a chance dele ser o chefe é de só 0,5%; os outros dividem o resto igualmente.
+// Devolve null se não há ninguém disponível (ou se só faltava o Mew e ele não saiu no sorteio).
+export const CHANCE_MEW = 0.005;
+export const ehMew = nome => chaveNome(nome) === "mew";
+export const escolherChefe = (catalogo, tem, jaCapturados, rng = Math.random) => {
+  const lista = chefesPossiveis(catalogo, tem, jaCapturados), mew = lista.find(p => ehMew(p.nome)), outros = lista.filter(p => !ehMew(p.nome));
+  if (mew && rng() < CHANCE_MEW) return mew;
+  return outros.length ? outros[Math.floor(rng() * outros.length)] : null;
+};
