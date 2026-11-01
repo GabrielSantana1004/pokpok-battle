@@ -24,7 +24,7 @@ function slot(t, id, i) {
   if (!p) return `<li class="slot vazio" title="Esse Pokémon não tem mais golpes escolhidos"><span>⚠ indisponível</span><button onclick="tmRm('${t.id}',${i})" aria-label="Tirar">✕</button></li>`;
   const golpes = ctx.golpes(p).map(m => m.nome).join(", ");
   return `<li class="slot" title="${esc(golpes)}"><img class="foto mini" data-pokemon="${esc(p.nome)}"${ctx.shiny[p.id] ? ' data-shiny="1"' : ""} alt="">
-    <b>${i + 1}. ${esc(p.nome)}${ctx.shiny[p.id] ? " ✨" : ""} <small class="nv-pk">Nv ${p.nivel || 50}${ivTxt(p)}</small></b><small>${esc(golpes)}</small>
+    <b>${i + 1}. ${esc(p.apelido || p.nome)}${ctx.shiny[p.id] ? " ✨" : ""} <small class="nv-pk">Nv ${p.nivel || 50}${ivTxt(p)}</small></b><small>${esc(golpes)}</small>
     <span class="slot-bt"><button onclick="tmMv('${t.id}',${i},-1)" aria-label="Para cima" ${i === 0 ? "disabled" : ""}>↑</button><button onclick="tmMv('${t.id}',${i},1)" aria-label="Para baixo" ${i === t.ids.length - 1 ? "disabled" : ""}>↓</button><button onclick="tmRm('${t.id}',${i})" aria-label="Tirar">✕</button></span></li>`;
 }
 function cartao(t) {
@@ -33,7 +33,7 @@ function cartao(t) {
     <div class="time-topo"><input class="time-nome" value="${esc(t.nome)}" maxlength="24" aria-label="Nome do time" onchange="tmNome('${t.id}',this.value)">
       <span class="time-qtd">${t.ids.length}/6</span></div>
     <ol class="slots">${t.ids.map((id, i) => slot(t, id, i)).join("") || '<li class="slot vazio"><span>Time vazio: adicione Pokémon abaixo.</span></li>'}</ol>
-    ${t.ids.length < 6 ? `<div class="time-add"><select id="add-${t.id}">${livres.map(p => `<option value="${esc(p.id)}">${esc(p.nome)}${ctx.shiny[p.id] ? " ✨" : ""} Nv ${p.nivel || 50}${ivTxt(p)}</option>`).join("") || "<option value=''>(nenhum Pokémon pronto)</option>"}</select>
+    ${t.ids.length < 6 ? `<div class="time-add"><select id="add-${t.id}">${livres.map(p => `<option value="${esc(p.id)}">${esc(p.apelido || p.nome)}${ctx.shiny[p.id] ? " ✨" : ""} Nv ${p.nivel || 50}${ivTxt(p)}</option>`).join("") || "<option value=''>(nenhum Pokémon pronto)</option>"}</select>
       <button onclick="tmAdd('${t.id}')" ${livres.length ? "" : "disabled"}>Adicionar</button></div>` : ""}
     <div class="time-acoes"><button onclick="tmDup('${t.id}')" ${times.length >= MAX_TIMES ? "disabled" : ""}>Duplicar</button><button class="remover" onclick="tmDel('${t.id}')">Excluir time</button></div></article>`;
 }

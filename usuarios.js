@@ -91,6 +91,17 @@ export const tentarCaptura = (chave, sala) => escrever(async tx => {
   tx.update(ref(chave), {capturas: caps, [`pokemons.${id}`]: reg, ...raid});
   return {resultado, tentativas, esp: c.esp, pokemon: {id, ...reg}};
 });
+// ----- Apelidos: cada Pokémon pode ter um nome só dele (guardado em pokemons.<id>.apelido e leva junto na troca). Vazio = sem apelido -----
+export const APELIDO_MAX = 16;
+export const limparApelido = t => String(t ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, APELIDO_MAX);
+export const renomearPokemon = (chave, id, apelido) => escrever(async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
+  if (!(us.data().pokemons || {})[id]) throw new Error("Esse Pokémon não está mais na sua conta.");
+  const nome = limparApelido(apelido);
+  tx.update(ref(chave), {[`pokemons.${id}.apelido`]: nome});
+  return nome;
+});
 // Raid: espécies que esta conta já capturou pela raid (nunca mais aparecem como chefe)
 export async function lerRaidCapturados(chave) {
   const s = await lerDoc(chave);

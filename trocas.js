@@ -20,15 +20,15 @@ const btn = (acao, id, txt, primario) => `<button${primario ? ' class="primario"
 // ----- peças visuais -----
 const img = (nome, shiny) => `<img class="foto" data-pokemon="${esc(nome)}"${shiny ? ' data-shiny="1"' : ""} alt="${esc(nome)}">`;
 const barraIv = ivs => ivs ? `<div class="tr-iv" title="Soma dos IVs"><i style="width:${Math.round(somaIvs(ivs) / IV_TOTAL * 100)}%"></i><span>IVs ${somaIvs(ivs)}/${IV_TOTAL}</span></div>` : "";
-const peca = (nome, shiny, ivs, extra = "") => `<div class="tr-peca${shiny ? " shiny" : ""}"><div class="tr-foto">${img(nome, shiny)}</div><b>${esc(nome)}${shiny ? " ✨" : ""}</b>${extra}${barraIv(ivs)}</div>`;
-const pecaMeu = p => peca(p.nome, p.shiny, p.ivs, `<small>Nv ${nivelDoPokemon(niveisMeus, p.id)}</small>`);
+const peca = (nome, shiny, ivs, extra = "", rotulo = nome) => `<div class="tr-peca${shiny ? " shiny" : ""}"><div class="tr-foto">${img(nome, shiny)}</div><b>${esc(rotulo)}${shiny ? " ✨" : ""}</b>${extra}${barraIv(ivs)}</div>`;
+const pecaMeu = p => peca(p.nome, p.shiny, p.ivs, `<small>${p.apelido ? esc(p.nome) + " · " : ""}Nv ${nivelDoPokemon(niveisMeus, p.id)}</small>`, p.apelido || p.nome);
 const pecaF = f => peca(nomeDe(f.esp), f.shiny, f.ivs);
 const misterio = txt => `<div class="tr-peca tr-misterio"><div class="tr-foto"><span>?</span></div><b>???</b><small>${txt}</small></div>`;
 const cena = (dou, recebo) => `<div class="tr-cena"><div class="tr-lado"><span class="tr-rotulo">Você dá</span>${dou}</div><div class="tr-meio" aria-hidden="true">⇄</div><div class="tr-lado"><span class="tr-rotulo">Você recebe</span>${recebo}</div></div>`;
 const selecionado = escopo => { if (!meus.some(p => p.id === sel[escopo])) sel[escopo] = meus[0]?.id; return meus.find(p => p.id === sel[escopo]); };
 const previa = escopo => { const p = selecionado(escopo); return `<div class="tr-previa" data-escopo="${esc(escopo)}">${p ? pecaMeu(p) : ""}</div>`; };
 const seletor = escopo => { selecionado(escopo); return `<div class="tr-picker"><input type="search" class="tr-busca" placeholder="Buscar nos seus Pokémon"><div class="tr-grade" data-escopo="${esc(escopo)}">${meus.map(p =>
-  `<button type="button" class="tr-op${sel[escopo] === p.id ? " marcada" : ""}" data-pick="${esc(p.id)}" data-escopo="${esc(escopo)}" data-nome="${esc(p.nome.toLowerCase())}" title="${esc(p.nome)}">${img(p.nome, p.shiny)}<b>${esc(p.nome)}${p.shiny ? " ✨" : ""}</b><small>Nv ${nivelDoPokemon(niveisMeus, p.id)}${p.ivs ? ` · IV ${somaIvs(p.ivs)}` : ""}</small></button>`).join("")}</div></div>`; };
+  `<button type="button" class="tr-op${sel[escopo] === p.id ? " marcada" : ""}" data-pick="${esc(p.id)}" data-escopo="${esc(escopo)}" data-nome="${esc((p.nome + " " + p.apelido).toLowerCase())}" title="${esc(p.apelido ? p.apelido + " (" + p.nome + ")" : p.nome)}">${img(p.nome, p.shiny)}<b>${esc(p.apelido || p.nome)}${p.shiny ? " ✨" : ""}</b><small>Nv ${nivelDoPokemon(niveisMeus, p.id)}${p.ivs ? ` · IV ${somaIvs(p.ivs)}` : ""}</small></button>`).join("")}</div></div>`; };
 
 // ----- uma troca em andamento -----
 function cartao(t) {

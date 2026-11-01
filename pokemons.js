@@ -20,7 +20,7 @@ export function instancias(catalogo, mapa) {
   const porEsp = new Map(catalogo.map(p => [p.id, p])), r = [];
   for (const [id, reg] of Object.entries(mapa || {})) {
     const e = porEsp.get(reg.esp); if (!e) continue; // espécie que saiu do catálogo
-    r.push({...e, id, esp: e.id, ivs: reg.ivs || null, shiny: !!reg.shiny});
+    r.push({...e, id, esp: e.id, ivs: reg.ivs || null, shiny: !!reg.shiny, apelido: reg.apelido || ""}); // apelido: nome dado pelo dono ("" = sem apelido)
   }
   return r;
 }

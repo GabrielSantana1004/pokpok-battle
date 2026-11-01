@@ -71,6 +71,10 @@ $("criar-raid").onclick = async () => { // raid: um lendário com 6x o HP; exige
   try { aviso(); codigo = await criarSala(true, "dificil", false, true); await entrar(codigo, "1"); location.href = "sala.html"; }
   catch(e) { aviso(e.message); b.disabled = false; b.textContent = "Enfrentar uma raid"; }
 };
+// a dificuldade escolhida contra o bot fica guardada neste navegador
+const CH_NIVEL_BOT = "pbb_nivel_bot";
+try { const n = localStorage.getItem(CH_NIVEL_BOT); if (n && [...$("nivel-bot").options].some(x => x.value === n)) $("nivel-bot").value = n; } catch(e) {}
+$("nivel-bot").onchange = () => { try { localStorage.setItem(CH_NIVEL_BOT, $("nivel-bot").value); } catch(e) {} };
 $("buscar").onclick = buscar;
 $("codigo").onkeydown = e => { if (e.key === "Enter") buscar(); };
 Object.assign(window, {ir, retomar});

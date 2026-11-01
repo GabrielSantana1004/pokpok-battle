@@ -5,6 +5,7 @@ import { montarTimes } from "./meus-times.js";
 import { lerStatus, lerNiveis, subirNivelPokemon } from "./usuarios.js";
 import { nivelDoPokemon } from "./nivel.js";
 import { REGRAS, statsFinais } from "./regras.js";
+import { renomearPokemon, APELIDO_MAX } from "./usuarios.js";
 import { usuario, criarConta, entrarConta, lerBuilds, salvarBuild, lerEscolhasHab, salvarEscolhaHab, podeEscolherShiny, definirShiny } from "./usuarios.js";
 import { habilidadeEscolhida, marcaHabilidade, estadoHabilidade } from "./habilidades.js";
 import { lerInventario, abrirCaixa, equiparItem, lerPokemons, inicialEscolhido, escolherInicial } from "./usuarios.js";
@@ -16,6 +17,8 @@ const CAT = {fisico: "Físico", especial: "Especial", status: "Status"};
 const badge = t => `<span class="tipo t-${esc(t)}">${esc(t)}</span>`;
 const aviso = t => { $("erro").textContent = t || ""; };
 const MAX = 4;
+let editandoAp = null; // id do Pokémon cujo apelido está sendo editado
+const norm = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(), rotulo = p => p.apelido || p.nome; // busca sem acento; o nome mostrado é o apelido, se tiver
 let u = usuario(), todas = [], podeShiny = false, inv = {itens: {}, itensEq: {}}, caixaRes = "", cat = [], builds = {}, shiny = {}, habs = {}, niveis = {}, pontos = 0, atual = null, marcados = [], recado = "";
 
 // ---------- conta ----------
@@ -43,9 +46,9 @@ function lista() {
 }
 function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica fora desta área e não perde o foco
   const com = cat.filter(p => p.aprende?.length);
-  const q = $("busca").value.trim().toLowerCase(), t = $("filtro").value;
-  const so = $("so-shiny").checked, vistos = com.filter(p => p.nome.toLowerCase().includes(q) && (!t || p.tipos.includes(t)) && (!so || shiny[p.id]));
-  const o = $("ordem").value, porNome = (a, b) => a.nome.localeCompare(b.nome, "pt-BR");
+  const q = norm($("busca").value.trim()), t = $("filtro").value;
+  const so = $("so-shiny").checked, vistos = com.filter(p => (norm(p.nome).includes(q) || norm(p.apelido).includes(q)) && (!t || p.tipos.includes(t)) && (!so || shiny[p.id]));
+  const o = $("ordem").value, porNome = (a, b) => rotulo(a).localeCompare(rotulo(b), "pt-BR");
   if (o) vistos.sort((a, b) => ({ // Array.sort é estável: em empate, mantém a ordem de antes
     nome: () => porNome(a, b), "nome-desc": () => porNome(b, a),
     nivel: () => nivelDoPokemon(niveis, b.id) - nivelDoPokemon(niveis, a.id) || porNome(a, b),
@@ -57,7 +60,9 @@ function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica f
     const mv = golpesDe(p);
     return `<article class="card">
       <img class="foto" data-pokemon="${esc(p.nome)}"${shiny[p.id] ? ' data-shiny="1"' : ""} alt="${esc(p.nome)}" loading="lazy">
-      <h3>${esc(p.nome)}${shiny[p.id] ? " ✨" : ""} ${tagLendario(p.nome)} <small class="nv-pk">Nv ${nivelDoPokemon(niveis, p.id)}</small>${p.megas?.length ? ' <small title="Pode megaevoluir: ' + esc(p.megas.map(m => m.nome).join(", ")) + '">⚡ Mega</small>' : ""}</h3>
+      <h3>${esc(rotulo(p))}${shiny[p.id] ? " ✨" : ""} ${tagLendario(p.nome)} <small class="nv-pk">Nv ${nivelDoPokemon(niveis, p.id)}</small>${p.megas?.length ? ' <small title="Pode megaevoluir: ' + esc(p.megas.map(m => m.nome).join(", ")) + '">⚡ Mega</small>' : ""}</h3>
+      ${editandoAp === p.id ? `<div class="apelido-edit"><input class="ap-input" maxlength="${APELIDO_MAX}" value="${esc(p.apelido)}" placeholder="Apelido (até ${APELIDO_MAX} letras)" aria-label="Apelido de ${esc(p.nome)}" data-ap-id="${esc(p.id)}"><button class="primario" data-ap-salvar="${esc(p.id)}">Salvar</button><button data-ap-cancelar>Cancelar</button></div>`
+        : `<p class="apelido-linha">${p.apelido ? `<span class="apelido-esp" title="Espécie">${esc(p.nome)}</span>` : ""}<button class="ap-btn" data-ap-abrir="${esc(p.id)}" title="Dar um apelido a este Pokémon">✏️ ${p.apelido ? "Renomear" : "Apelido"}</button></p>`}
       <div class="tipos">${p.tipos.map(badge).join("")}</div>
       ${p.ivs ? `<p class="hab-card" title="${esc(IV_STATS.map(k => `${k.toUpperCase()} ${p.ivs[k]}`).join(" · "))}">📊 IVs ${somaIvs(p.ivs)}/${IV_STATS.length * IV_MAX}</p>` : ""}
       ${p.habilidades?.length ? `<p class="hab-card">🧬 ${esc(habilidadeEscolhida(p, habs).nome)}${inv.itensEq[p.id] && itemPorId(inv.itensEq[p.id]) ? ` · 🎒 ${esc(itemPorId(inv.itensEq[p.id]).nome)}` : ""}</p>` : ""}
@@ -68,6 +73,7 @@ function grade() { // aplica a busca e o filtro de tipo; a barra de busca fica f
     </article>`;
   }).join("") || (com.length ? "<p>Nenhum Pokémon encontrado.</p>" : "<p>Nenhum Pokémon com lista de golpes ainda.</p>");
   carregarImagens($("grade"));
+  if (editandoAp) { const i = $("grade").querySelector(".ap-input"); i?.focus(); i?.select(); }
 }
 
 // ---------- escolha dos golpes de um Pokémon ----------
@@ -77,7 +83,7 @@ function abrir(id) {
   $("lista-pk").hidden = true; $("editor").hidden = false;
   $("editor").innerHTML = `<div class="topo-editor">
       <img class="foto mini" data-pokemon="${esc(atual.nome)}"${shiny[atual.id] ? ' data-shiny="1"' : ""} alt="">
-      <div><h2>${esc(atual.nome)}<span id="ed-ico">${shiny[atual.id] ? " ✨" : ""}</span> <small class="nv-pk">Nv ${nivelDoPokemon(niveis, atual.id)}</small></h2><div class="tipos">${atual.tipos.map(badge).join("")}</div></div>
+      <div><h2>${esc(rotulo(atual))}<span id="ed-ico">${shiny[atual.id] ? " ✨" : ""}</span> <small class="nv-pk">Nv ${nivelDoPokemon(niveis, atual.id)}</small></h2><div class="tipos">${atual.tipos.map(badge).join("")}</div></div>
       <button id="voltar">← Voltar</button></div>
     ${podeShiny ? `<label class="shiny-opcao" title="Liga ou desliga o shiny deste Pokémon"><input type="checkbox" id="shiny-ed"${shiny[atual.id] ? " checked" : ""}> ✨ Shiny</label>` : ""}
     <div class="stats stats-editor">${STATS.map(s => `<div><small>${s[1]}</small><b>${atual[s[0]]}</b></div>`).join("")}</div>
@@ -154,7 +160,27 @@ async function remover() {
 $("filtro").innerHTML += TIPOS.map(t => `<option>${t}</option>`).join("");
 $("busca").oninput = grade;
 $("filtro").onchange = grade;
-$("ordem").onchange = grade;
+// a ordem escolhida fica guardada neste navegador (vale também depois de recarregar a página)
+const CH_ORDEM = "pbb_ordem_meus";
+try { const o = localStorage.getItem(CH_ORDEM); if (o && [...$("ordem").options].some(x => x.value === o)) $("ordem").value = o; } catch(e) {}
+$("ordem").onchange = () => { try { localStorage.setItem(CH_ORDEM, $("ordem").value); } catch(e) {} grade(); };
+// apelidos: ✏️ abre o campo no cartão; Enter salva, Esc cancela
+async function salvarApelido(id, texto) {
+  try {
+    const ap = await renomearPokemon(u.chave, id, texto), p = cat.find(x => x.id === id); if (p) p.apelido = ap;
+    editandoAp = null; aviso(); recado = ap ? `Apelido salvo: ${ap}.` : "Apelido removido."; lista();
+  } catch(err) { aviso(err.message || "Não foi possível salvar o apelido."); }
+}
+$("grade").addEventListener("click", e => {
+  const abrirAp = e.target.closest("[data-ap-abrir]"), salvar = e.target.closest("[data-ap-salvar]");
+  if (abrirAp) { editandoAp = abrirAp.dataset.apAbrir; grade(); }
+  else if (salvar) salvarApelido(salvar.dataset.apSalvar, salvar.closest(".apelido-edit").querySelector(".ap-input").value);
+  else if (e.target.closest("[data-ap-cancelar]")) { editandoAp = null; grade(); }
+});
+$("grade").addEventListener("keydown", e => {
+  const i = e.target.closest(".ap-input"); if (!i) return;
+  if (e.key === "Enter") salvarApelido(i.dataset.apId, i.value); else if (e.key === "Escape") { editandoAp = null; grade(); }
+});
 $("so-shiny").onchange = grade;
 $("grade").onchange = async e => { // shiny liga/desliga direto no cartão (só contas com permissão)
   const caixa = e.target.closest("[data-shiny-id]"); if (!caixa) return;
