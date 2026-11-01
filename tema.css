@@ -1068,7 +1068,7 @@ body:not(.em-batalha) section#missoes { padding: 0; border: 0; background: none;
 .mn-card.pode:hover { transform: translateY(-2px); background: #f4f8ff; box-shadow: 0 5px 0 #9fb1ef; }
 .mn-card:disabled { cursor: default; opacity: 1; }
 .mn-card:disabled:not(.campo):not(.caido) { opacity: .6; }
-.mn-card.campo { border-color: #f0c419; background: linear-gradient(#fffbe6, #fff4c2); box-shadow: 0 3px 0 #e0b400; }
+.mn-card.emcampo { border-color: #f0c419; background: linear-gradient(#fffbe6, #fff4c2); box-shadow: 0 3px 0 #e0b400; }
 .mn-card.caido { background: #f1f1f5; }
 .mn-card.caido .mn-foto img { filter: grayscale(1) opacity(.55); }
 .mn-selo { position: absolute; top: -8px; left: 50%; translate: -50% 0; padding: 0 10px; border-radius: 999px; background: #f0c419; color: #4a3600; font-style: normal; font-size: .68rem; font-weight: 800; white-space: nowrap; box-shadow: 0 2px 0 #c9a000; }

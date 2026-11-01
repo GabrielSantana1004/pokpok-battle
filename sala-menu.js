@@ -16,7 +16,7 @@ const nome = q => `${esc(q.nome)}${q.shiny ? " ✨" : ""}`;
 // cartão de um Pokémon da equipe. acao: texto de onclick (ou null = só mostra); chip: etiqueta de baixo; selo: etiqueta de cima
 function cartao(q, {acao, ativo, campo = false, chip = "", dica = ""}) {
   const caido = q.hpAtual <= 0, f = Math.max(0, Math.min(1, q.hpAtual / q.hp));
-  return `<button class="mn-card${campo ? " campo" : ""}${caido ? " caido" : ""}${acao && ativo ? " pode" : ""}" ${acao && ativo ? `onclick="${acao}"` : "disabled"} title="${esc(dica)}">
+  return `<button class="mn-card${campo ? " emcampo" : ""}${caido ? " caido" : ""}${acao && ativo ? " pode" : ""}" ${acao && ativo ? `onclick="${acao}"` : "disabled"} title="${esc(dica)}">
     ${campo ? '<em class="mn-selo">Em campo</em>' : caido ? '<em class="mn-selo cai">Derrotado</em>' : ""}
     <span class="mn-foto"><img class="foto mini" ${imgAttr(q)} alt=""></span>
     <b>${nome(q)}</b>
