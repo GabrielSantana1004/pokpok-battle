@@ -1035,3 +1035,56 @@ body:not(.em-batalha) section#missoes { padding: 0; border: 0; background: none;
 .apelido-edit { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; margin: 4px 0 8px; }
 .apelido-edit input { flex: 1 1 130px; min-width: 0; margin: 0; padding: 6px 10px; }
 .apelido-edit button { margin: 0; padding: 6px 12px; font-size: .85rem; }
+
+
+/* ==========================================================
+   MENU HAMBÚRGUER (gaveta com abas: Equipe · Itens · Registro)
+   ========================================================== */
+.menu.mn { display: flex; flex-direction: column; width: min(400px, 94vw); padding: 0; overflow: hidden; background: linear-gradient(#fff, #f3f6ff); border-left: 6px solid var(--red); animation: none; }
+.menu.mn.anim { animation: entrar .18s ease; }
+.mn-topo { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; font-family: var(--fonte-titulo); font-size: 1.2rem; color: var(--blue-dark); }
+.mn-topo button { margin: 0; width: 40px; height: 40px; padding: 0; border-radius: 50%; font-size: 1.1rem; }
+.mn-fichas { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+.mn-fichas span { padding: 3px 10px; border-radius: 999px; background: #fff; border: 2px solid var(--line); font-size: .85rem; font-weight: 800; box-shadow: 0 2px 0 var(--line); }
+.mn-fichas small { font-weight: 600; color: #4a5278; }
+.mn-abas { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; margin: 0 14px; border-radius: 14px; background: #e4eaff; }
+.mn-abas button { margin: 0; padding: 8px 4px; border: 0; border-radius: 10px; background: transparent; box-shadow: none; color: #3d4770; font-weight: 800; font-size: .9rem; }
+.mn-abas button.sel { background: linear-gradient(#4a74ff, var(--blue)); color: #fff; box-shadow: 0 3px 0 var(--blue-dark); }
+.mn-corpo { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 14px 8px; }
+.mn-dica { margin: 0 0 10px; font-size: .88rem; color: #3d4770; }
+.mn-sub { margin: 10px 0 6px; font-size: .95rem; color: var(--blue-dark); }
+.mn-aviso { margin: 0 0 8px; padding: 6px 10px; border-radius: 12px; background: #fff4d6; border: 2px solid #f0c419; color: #5a4300; font-size: .85rem; }
+.mn-aviso.zero { background: #ffe0e3; border-color: var(--red); color: var(--red-dark); }
+.mn-itens { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.mn-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; margin: 0; padding: 8px 6px; border-radius: 14px; background: #fff; border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line); color: var(--ink); }
+.mn-item .ico { font-size: 1.7rem; line-height: 1.1; }
+.mn-item b { font-family: var(--fonte-titulo); font-size: 1rem; }
+.mn-item .qtd { position: absolute; top: 4px; right: 8px; font-weight: 800; font-size: .95rem; color: var(--blue-dark); }
+.mn-item small { font-size: .72rem; color: #4a5278; font-weight: 700; }
+.mn-item.sel { border-color: var(--blue); background: linear-gradient(#eef3ff, #dbe5ff); box-shadow: 0 0 0 3px rgba(47, 91, 234, .25), 0 3px 0 var(--blue-dark); }
+.mn-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mn-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; margin: 0; padding: 14px 6px 8px; border-radius: 16px; background: #fff; border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line); color: var(--ink); text-align: center; transition: transform .1s, box-shadow .1s; }
+.mn-card.pode { cursor: pointer; border-color: #9fb1ef; }
+.mn-card.pode:hover { transform: translateY(-2px); background: #f4f8ff; box-shadow: 0 5px 0 #9fb1ef; }
+.mn-card:disabled { cursor: default; opacity: 1; }
+.mn-card:disabled:not(.campo):not(.caido) { opacity: .6; }
+.mn-card.campo { border-color: #f0c419; background: linear-gradient(#fffbe6, #fff4c2); box-shadow: 0 3px 0 #e0b400; }
+.mn-card.caido { background: #f1f1f5; }
+.mn-card.caido .mn-foto img { filter: grayscale(1) opacity(.55); }
+.mn-selo { position: absolute; top: -8px; left: 50%; translate: -50% 0; padding: 0 10px; border-radius: 999px; background: #f0c419; color: #4a3600; font-style: normal; font-size: .68rem; font-weight: 800; white-space: nowrap; box-shadow: 0 2px 0 #c9a000; }
+.mn-selo.cai { background: #8a8fa8; color: #fff; box-shadow: 0 2px 0 #666b82; }
+.mn-foto { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #fff 0 40%, #dfe7ff 100%); box-shadow: 0 0 0 2px var(--line); }
+.mn-foto img.foto { width: 54px; height: 54px; margin: 0; border: 0; box-shadow: none; background: none; border-radius: 50%; }
+.mn-card b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--fonte-titulo); font-size: .92rem; }
+.mn-hp { width: 86%; height: 8px; border-radius: 999px; background: #d5dbf0; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .25); }
+.mn-hp i { display: block; height: 100%; border-radius: 999px; transition: width .3s; }
+.mn-card .hp-num { margin: 0; font-size: .78rem; font-weight: 700; color: #3d4770; font-variant-numeric: tabular-nums; }
+.mn-chip { margin-top: 2px; padding: 1px 10px; border-radius: 999px; background: #e8ecf8; color: #4a5278; font-size: .72rem; font-weight: 800; }
+.mn-card.pode .mn-chip { background: linear-gradient(#4a74ff, var(--blue)); color: #fff; }
+.mn-rodape-info { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; padding: 8px 10px; border-radius: 12px; background: #fff; border: 2px dashed var(--line); font-size: .82rem; color: #3d4770; }
+.mn-rodape-info small { font-weight: 600; }
+.mn-log { max-height: none; background: #fff; border: 2px solid var(--line); border-radius: 12px; font-size: .86rem; }
+.mn-log div.alerta { margin: 3px 0; padding: 3px 8px; border-radius: 8px; background: #ffe9b0; color: #5a3b00; font-weight: 800; }
+.mn-rodape { padding: 10px 14px 14px; border-top: 2px solid var(--line); background: #fff; }
+.mn-rodape .sair { width: 100%; margin: 0; padding: 10px; background: linear-gradient(#f2504b, #c62824); color: #fff; border-color: #fff; }
+@media (prefers-reduced-motion: reduce) { .menu.mn.anim { animation: none; } .mn-card, .mn-hp i { transition: none; } }

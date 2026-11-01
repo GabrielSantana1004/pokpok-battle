@@ -8,7 +8,7 @@ import { BOT, botEscolha, botTroca } from "./botia.js";
 import { listar } from "./firebase.js";
 import { usuario, refUsuario, VITORIAS_POR_REVIVER, lerPokemons, lerRaidCapturados } from "./usuarios.js";
 import { habilidadeOculta } from "./habilidades.js";
-import { escolherChefe, chefesPossiveis, HP_RAID } from "./raid.js";
+import { escolherChefe, chefesPossiveis, HP_RAID, LIMITE_ITENS_RAID, chefeInicial, pressaoRaid } from "./raid.js";
 import { XP_DERROTA, xpDe, infoNivel, xpTorreTotal, xpVitoriaBot, nivelDoBot, XP_VITORIA, XP_RAID } from "./nivel.js";
 import { filaTorre, torreAvancar, reescalar, nivelNaTorre, copiaBot } from "./torre.js";
 import { golpeZ } from "./zmoves.js";
@@ -122,7 +122,7 @@ export const confirmarEquipe = (codigo, papel, equipe, mapa = {}) => mudar(codig
   eu.equipe = equipe.map(p => copiaPokemon(p, mapa)); eu.ativo = 0; eu.confirmada = true; // cópia congelada na sala
   if (s.raid && papel === "1") { // raid: o chefe luta no nível do seu Pokémon mais forte e entra com 6x o HP
     const b = s.j["2"].equipe[0]; reescalar(b, nivelDoBot("dificil", eu.equipe.map(p => p.nivel || 50)));
-    b.hp = b.hpAtual = b.hp * HP_RAID;
+    b.hp = b.hpAtual = b.hp * HP_RAID; chefeInicial(b); // chefe gigante, que começa contido e vai se libertando (veja pressaoRaid)
   }
   if (s.bot && !s.torre && !s.raid && papel === "1") { // bot comum: o nível de todo o time dele acompanha o seu (fácil: menor · normal: média · difícil: maior)
     s.j["2"].equipe = s.j["2"].equipe.slice(0, eu.equipe.length); // o bot luta com o mesmo número de Pokémon que você (quem tem 1 só não enfrenta 6)
@@ -155,6 +155,10 @@ function registrar(s, papel, esc) {
     const p = eu.equipe[esc.idx];
     if (!p || p.hpAtual > 0) throw new Error("O Reviver só funciona em Pokémon derrotados.");
   } else throw new Error("Escolha inválida.");
+  if (s.raid && (esc.tipo === "pocao" || esc.tipo === "reviver")) { // raid: número limitado de itens por jogador (Poção + Reviver)
+    if ((eu.itensRaid || 0) >= LIMITE_ITENS_RAID) throw new Error(`Limite da raid: cada jogador só pode usar ${LIMITE_ITENS_RAID} itens (Poção e Reviver) nesta batalha.`);
+    eu.itensRaid = (eu.itensRaid || 0) + 1;
+  }
   if (esc.mega != null) { // megaevolução junto com o golpe (1 por equipe)
     const A = ativoDe(eu);
     if (esc.tipo !== "golpe") throw new Error("Só dá para megaevoluir junto com um golpe.");
@@ -173,7 +177,7 @@ function registrar(s, papel, esc) {
   }
   s.escolhas[papel] = {tipo: esc.tipo, idx: esc.idx, mega: esc.mega ?? null, z: !!esc.z};
   if (s.bot) s.escolhas[BOT] = botEscolha(s); // o bot escolhe um golpe aleatório na hora
-  if (s.escolhas["1"] && s.escolhas["2"]) resolverRodada(s); // quem escolhe por último resolve a rodada
+  if (s.escolhas["1"] && s.escolhas["2"]) { resolverRodada(s); pressaoRaid(s); } // quem escolhe por último resolve a rodada (na raid, o chefe pode ficar mais forte)
   botTroca(s); // se o bot ficou sem Pokémon em campo, ele escolhe o próximo sozinho
   torreAvancar(s); // torre: o Pokémon do andar caiu, entra o próximo
 }
