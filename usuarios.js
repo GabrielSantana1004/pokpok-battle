@@ -2,7 +2,7 @@
 // Documento: { nick, senha (hash), pokemons: { <id da instância>: {esp, ivs, shiny} }, builds: { <id da instância>: ["Golpe 1", ...até 4] } }
 // Atenção: com as regras do Firestore abertas isto identifica quem joga, mas não é segurança de verdade.
 import "./firebase.js"; // inicializa o app com o seu firebaseConfig
-import { novoPokemon, novoIdPokemon, shinyPorInstancia, shinyPorEspecie, tentativaCaptura } from "./pokemons.js";
+import { novoPokemon, novoIdPokemon, shinyPorInstancia, shinyPorEspecie, tentativaCaptura, CHANCE_SHINY } from "./pokemons.js";
 import { infoNivel, xpDe, nivelDoPokemon, pontosLivres, caixasLivres } from "./nivel.js";
 import { sortearCaixa, itemPorId, copiasLivres } from "./itens.js";
 import { REGRAS } from "./regras.js";
@@ -71,7 +71,7 @@ export const prepararCaptura = (chave, escolherEsp, sala) => escrever(async tx =
   if (!caps[i].esp) {
     const esp = escolherEsp();
     if (!esp) throw new Error("Não há lendários no catálogo para sortear.");
-    caps[i] = {...caps[i], esp: String(esp)}; tx.update(ref(chave), {capturas: caps});
+    caps[i] = {...caps[i], esp: String(esp), shiny: Math.random() < CHANCE_SHINY}; tx.update(ref(chave), {capturas: caps}); // shiny decidido agora, antes de capturar
   }
   return {...caps[i]};
 });
@@ -86,6 +86,7 @@ export const tentarCaptura = (chave, sala) => escrever(async tx => {
   caps.splice(i, 1);
   if (resultado === "fugiu") { tx.update(ref(chave), {capturas: caps}); return {resultado, tentativas, esp: c.esp}; }
   const id = novoIdPokemon(), reg = novoPokemon(c.esp);
+  if (typeof c.shiny === "boolean") reg.shiny = c.shiny; // o shiny já foi decidido na batalha / ao aparecer: vale o que a tela de captura mostrou
   // lendário capturado numa raid: a conta guarda que já o conseguiu por lá (ele não volta a aparecer como chefe, nem se for trocado depois)
   const raid = c.tipo === "raid" ? {raidCapturados: [...new Set([...(us.data().raidCapturados || []), String(c.esp)])]} : {};
   tx.update(ref(chave), {capturas: caps, [`pokemons.${id}`]: reg, ...raid});
@@ -101,6 +102,17 @@ export const renomearPokemon = (chave, id, apelido) => escrever(async tx => {
   const nome = limparApelido(apelido);
   tx.update(ref(chave), {[`pokemons.${id}.apelido`]: nome});
   return nome;
+});
+// Raid: o chefe que a conta vai enfrentar fica guardado em raidAtual até ele ser derrotado ou o jogador perder (assim dá para planejar a equipe).
+// valido(atual, dados) diz se o chefe guardado ainda vale; se não houver (ou não valer), sortear(dados) escolhe outro e ele é gravado. Devolve o chefe em vigor ou null.
+export const fixarRaid = (chave, valido, sortear) => escrever(async tx => {
+  const us = await tx.get(ref(chave));
+  if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
+  const d = us.data(), atual = d.raidAtual;
+  if (atual && valido(atual, d)) return atual;
+  const novo = sortear(d) || null;
+  if (novo || atual) tx.update(ref(chave), {raidAtual: novo});
+  return novo;
 });
 // Raid: espécies que esta conta já capturou pela raid (nunca mais aparecem como chefe)
 export async function lerRaidCapturados(chave) {

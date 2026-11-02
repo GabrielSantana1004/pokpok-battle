@@ -28,15 +28,16 @@ function abrirTela() {
   if (!p) { C.resumo = "Esse Pokémon não está mais no catálogo."; C.atual = null; E.render(); return; }
   const raid = C.atual.tipo === "raid", lend = raid || C.atual.tipo === "lendario"; // raid: o lendário vencido nunca foge
   const t = C.tela = document.createElement("div");
-  t.className = "cap-tela" + (lend ? " lendario" : "");
-  t.innerHTML = `<div class="cap-topo">${raid ? "🐉 Raid vencida!" : lend ? "⭐ Um lendário apareceu!" : "🎯 Captura"}</div>
+  const brilha = !!C.atual.shiny; // o shiny foi decidido na batalha (ou ao aparecer): a tela mostra o sprite shiny
+  t.className = "cap-tela" + (lend ? " lendario" : "") + (brilha ? " shiny" : "");
+  t.innerHTML = `<div class="cap-topo">${raid ? "🐉 Raid vencida!" : lend ? "⭐ Um lendário apareceu!" : "🎯 Captura"}${brilha ? " ✨" : ""}</div>
     <div class="cap-palco">
       <div class="cap-sombra"></div>
-      <div class="cap-pokemon">${spriteImg(p.nome, "frente")}</div>
+      <div class="cap-pokemon">${spriteImg(p.nome, "frente", brilha)}</div>
       <div class="cap-bola" aria-hidden="true"></div>
       <div class="cap-efeito" aria-hidden="true"></div>
     </div>
-    <div class="cap-info"><b>${esc(p.nome)}</b> ${p.tipos.map(badge).join("")}<span class="cap-tent"></span></div>
+    <div class="cap-info"><b>${esc(p.nome)}${brilha ? " ✨" : ""}</b>${brilha ? '<span class="cap-tag-shiny">✨ SHINY</span>' : ""} ${p.tipos.map(badge).join("")}<span class="cap-tent"></span></div>
     <div class="cap-caixa"><p class="cap-texto"></p></div>
     <div class="cap-botoes"></div>`;
   document.body.appendChild(t); document.body.classList.add("cap-aberta");
@@ -50,7 +51,8 @@ function abrirTela() {
   });
   botoes(["lancar", "soltar"]);
   tentativas();
-  dizer(raid ? `${p.nome} está exausto depois da raid! Ele não consegue fugir: lance a Pokébola quantas vezes precisar.` : lend ? `Um ${p.nome} lendário apareceu! Ele é bem mais difícil de capturar.` : `${p.nome}, um dos Pokémon do bot que você derrotou, está pronto para ser capturado!`);
+  const pre = brilha ? "✨ Ele é SHINY! " : "";
+  dizer(pre + (raid ? `${p.nome} está exausto depois da raid! Ele não consegue fugir: lance a Pokébola quantas vezes precisar.` : lend ? `Um ${p.nome} lendário apareceu! Ele é bem mais difícil de capturar.` : `${p.nome}, um dos Pokémon do bot que você derrotou, está pronto para ser capturado!`));
 }
 const tentativas = () => { const e = C.tela?.querySelector(".cap-tent"); if (e) e.textContent = C.atual?.tentativas ? ` · tentativas: ${C.atual.tentativas}` : ""; };
 function botoes(lista, extra = "") {

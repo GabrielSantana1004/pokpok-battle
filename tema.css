@@ -1088,3 +1088,22 @@ body:not(.em-batalha) section#missoes { padding: 0; border: 0; background: none;
 .mn-rodape { padding: 10px 14px 14px; border-top: 2px solid var(--line); background: #fff; }
 .mn-rodape .sair { width: 100%; margin: 0; padding: 10px; background: linear-gradient(#f2504b, #c62824); color: #fff; border-color: #fff; }
 @media (prefers-reduced-motion: reduce) { .menu.mn.anim { animation: none; } .mn-card, .mn-hp i { transition: none; } }
+
+
+/* ==========================================================
+   SHINY na captura e CHEFE DA RAID no lobby
+   ========================================================== */
+.cap-tag-shiny { padding: 1px 10px; border-radius: 999px; font-size: .75rem; font-weight: 800; color: #5a3b00; background: linear-gradient(135deg, #fff3b8, #ffd24a 55%, #ffb300); border: 1px solid #e0a800; box-shadow: 0 0 10px rgba(255, 210, 74, .8); }
+.cap-tela.shiny .cap-pokemon { filter: drop-shadow(0 0 14px rgba(255, 224, 120, .95)); }
+.cap-tela.shiny .cap-palco::before { background: radial-gradient(circle, rgba(255, 236, 140, .75), rgba(255, 210, 80, .25) 45%, transparent 70%); }
+.cap-tela.shiny .cap-caixa { border-color: #ffe08a; box-shadow: 0 0 0 3px #1a1a1a, 0 0 0 5px rgba(255, 224, 138, .5), 0 0 18px rgba(255, 210, 74, .5), 0 10px 20px rgba(0, 0, 0, .45); }
+.raid-chefe { display: flex; align-items: center; gap: 12px; width: 100%; margin: 4px 0 10px; padding: 8px 12px; border-radius: 16px; text-align: left; background: linear-gradient(#fff4e6, #ffe3cf); border: 2px solid #ffb48a; box-shadow: 0 3px 0 #f09a6a; }
+.raid-chefe[hidden] { display: none; }
+.raid-chefe p { margin: 0; font-weight: 700; }
+.rc-foto { flex: none; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #fff 0 40%, #ffd9bf 100%); box-shadow: 0 0 0 3px #fff, 0 0 0 5px #ffb48a; }
+.rc-foto img.foto { width: 76px; height: 76px; margin: 0; border: 0; box-shadow: none; background: none; border-radius: 50%; }
+.rc-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.rc-info b { font-family: var(--fonte-titulo); font-size: 1.1rem; }
+.rc-info small { font-size: .78rem; color: #4a5278; font-weight: 700; }
+.rc-info .tipo { margin-right: 3px; }
+.rc-nota { font-weight: 600; font-style: italic; }

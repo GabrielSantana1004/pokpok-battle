@@ -38,7 +38,7 @@ function barraCampo(s) {
 // torre: o adversário só mostra o Pokémon em campo; no lugar das miniaturas vai o placar da subida
 const torreInfo = T => `<div class="torre-info"><span>🗼 Andar ${T.andar}/${T.total}</span><span>${T.n} ${T.n === 1 ? "derrotado" : "derrotados"}</span><span title="XP da próxima vitória">próxima: +${xpTorre(T.n + 1)} XP</span><span title="XP acumulado, recebido ao fim da subida">acumulado: ${xpTorreTotal(T.n)} XP</span></div>`;
 // raid: no lugar das miniaturas do adversário vai o aviso do chefe gigante
-const raidInfo = R => `<div class="torre-info raid-info"><span>🐉 Raid: ${esc(R.nome)}</span><span>HP ×${RAID.hp}</span><span title="Itens (Poção e Reviver) que cada jogador pode usar">${RAID.itens} itens</span><span title="XP ao vencer">vitória: +${XP_RAID} XP e captura</span></div>`;
+const raidInfo = R => `<div class="torre-info raid-info"><span>🐉 Raid: ${esc(R.nome)}${R.shiny ? " ✨" : ""}</span><span>HP ×${RAID.hp}</span><span title="Itens (Poção e Reviver) que cada jogador pode usar">${RAID.itens} itens</span><span title="XP ao vencer">vitória: +${XP_RAID} XP e captura</span></div>`;
 // bolinhas do time: uma por Pokémon (cinza = derrotado, borda amarela = em campo)
 const bolas = j => `<div class="bolas" title="Pokémon restantes: ${vivos(j).length}/${j.equipe.length}">${j.equipe.map((q, i) => `<i class="${q.hpAtual <= 0 ? "caido" : ""}${i === j.ativo ? " ativa" : ""}"></i>`).join("")}</div>`;
 function caixaVida(s, k) {

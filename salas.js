@@ -3,12 +3,12 @@ import { getFirestore, doc, getDoc, setDoc, runTransaction, onSnapshot, Timestam
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { itemDeBot } from "./itens.js";
 import { sortearEquipe, golpesDeChefe } from "./bot.js";
-import { ehLendario, IV_STATS, IV_MAX } from "./pokemons.js";
+import { ehLendario, IV_STATS, IV_MAX, CHANCE_SHINY } from "./pokemons.js";
 import { BOT, botEscolha, botTroca } from "./botia.js";
 import { listar } from "./firebase.js";
-import { usuario, refUsuario, VITORIAS_POR_REVIVER, lerPokemons, lerRaidCapturados } from "./usuarios.js";
+import { usuario, refUsuario, VITORIAS_POR_REVIVER, fixarRaid } from "./usuarios.js";
 import { habilidadeOculta } from "./habilidades.js";
-import { escolherChefe, chefesPossiveis, HP_RAID, LIMITE_ITENS_RAID, chefeInicial, pressaoRaid } from "./raid.js";
+import { escolherChefe, chefesPossiveis, ehRaid, HP_RAID, LIMITE_ITENS_RAID, chefeInicial, pressaoRaid } from "./raid.js";
 import { XP_DERROTA, xpDe, infoNivel, xpTorreTotal, xpVitoriaBot, nivelDoBot, XP_VITORIA, XP_RAID } from "./nivel.js";
 import { filaTorre, torreAvancar, reescalar, nivelNaTorre, copiaBot } from "./torre.js";
 import { golpeZ } from "./zmoves.js";
@@ -51,19 +51,32 @@ async function jogadorTorre() {
   const primeiro = fila.shift();
   return {bot: {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: [primeiro]}, torre: {n: 0, andar: 1, total: fila.length + 1, fila}};
 }
-// Raid: o adversário é UM lendário sorteado entre os que esta conta ainda não tem (e nunca capturou pela raid). O HP x6 é aplicado ao confirmar a equipe (junto com o nível).
+// Raid: cada conta tem UM chefe guardado (raidAtual) que só muda quando ele é derrotado ou o jogador perde; ao ser sorteado já se decide se ele é shiny e que item leva.
+// Também usada pelo lobby, para mostrar o chefe e dar tempo de montar a equipe. Devolve {vazio: true, esgotado} se não há lendário disponível; sem conta, devolve null.
+export async function chefeDaRaid() {
+  const u = usuario(); if (!u) return null;
+  const cat = await listar(), porId = id => cat.find(p => String(p.id) === String(id));
+  const temDe = d => new Set(Object.values(d.pokemons || {}).map(r => String(r.esp)));
+  const valido = (a, d) => { const p = porId(a.esp); return !!p && ehRaid(p.nome) && !temDe(d).has(String(a.esp)) && !(d.raidCapturados || []).includes(String(a.esp)); }; // se a conta ganhou a espécie por outro caminho, sorteia outro
+  let esgotado = false; // true = a conta já tem todos os lendários da raid
+  const atual = await fixarRaid(u.chave, valido, d => {
+    const tem = temDe(d), capt = d.raidCapturados || [];
+    esgotado = !chefesPossiveis(cat, tem, capt).length;
+    const c = escolherChefe(cat, tem, capt);
+    return c ? {esp: String(c.id), shiny: Math.random() < CHANCE_SHINY, item: itemDeBot("chefe")} : null;
+  });
+  return atual ? {...atual, especie: porId(atual.esp)} : {vazio: true, esgotado};
+}
 async function jogadorRaid() {
   const u = usuario(); if (!u) throw new Error("Entre na sua conta em Meus Pokémon para enfrentar uma raid.");
-  const [cat, regs, capturados] = await Promise.all([listar(), lerPokemons(u.chave), lerRaidCapturados(u.chave)]);
-  const tem = new Set(Object.values(regs).map(r => String(r.esp)));
-  if (!chefesPossiveis(cat, tem, capturados).length) throw new Error("Você já tem todos os lendários que aparecem nas raids. Parabéns!");
-  const chefe = escolherChefe(cat, tem, capturados);
-  if (!chefe) throw new Error("Nenhum lendário apareceu desta vez (só falta um raríssimo). Tente de novo!");
-  const {equipe, mapa} = await sortearEquipe([chefe], 1, () => false, undefined, habilidadeOculta, () => itemDeBot("chefe")); // habilidade oculta e item raro, como os chefes da torre
+  const a = await chefeDaRaid();
+  if (a.vazio) throw new Error(a.esgotado ? "Você já tem todos os lendários que aparecem nas raids. Parabéns!" : "Nenhum lendário apareceu desta vez (só falta um raríssimo). Tente de novo!");
+  const chefe = a.especie; if (!chefe) throw new Error("O chefe da raid não está mais no catálogo. Tente de novo.");
+  const {equipe, mapa} = await sortearEquipe([chefe], 1, () => !!a.shiny, undefined, habilidadeOculta, () => a.item || null); // habilidade oculta; shiny e item ficam como foram sorteados com o chefe
   const mv = await golpesDeChefe(equipe[0], mapa); if (mv) equipe[0].mv = mv; // golpes escolhidos a dedo (os melhores de dano), não sorteados
   equipe[0].ivs = Object.fromEntries(IV_STATS.map(k => [k, IV_MAX])); // IVs perfeitos
   const boss = copiaBot(equipe[0], mapa); boss.chefe = true;
-  return {bot: {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: [boss]}, raid: {esp: String(chefe.id), nome: chefe.nome}};
+  return {bot: {uid: "bot", bot: true, saiu: false, confirmada: true, ativo: 0, equipe: [boss]}, raid: {esp: String(chefe.id), nome: chefe.nome, shiny: !!a.shiny}};
 }
 export async function criarSala(contraBot = false, nivelBot = "normal", modoTorre = false, modoRaid = false) {
   const t = modoTorre ? await jogadorTorre() : null, r = modoRaid ? await jogadorRaid() : null, bot = t ? t.bot : r ? r.bot : contraBot ? await jogadorBot(nivelBot) : null;
@@ -210,7 +223,7 @@ export const contabilizarResultado = (codigo, papel) => runTransaction(db, async
     if (!us.exists()) return false;
     const d = us.data(), venceu = s.vencedor === papel, ganho = venceu ? XP_RAID : XP_DERROTA, xp = xpDe(d) + ganho, antes = infoNivel(xpDe(d)).nivel, depois = infoNivel(xp).nivel;
     const caps = (d.capturas || []).filter(c => c.sala !== codigo); // mantém as capturas pendentes de outras salas
-    tx.update(refUsuario(eu.chave), {xp, ...(venceu ? {capturas: [...caps, {tipo: "raid", esp: s.raid.esp, sala: codigo}]} : {})});
+    tx.update(refUsuario(eu.chave), {xp, raidAtual: null, ...(venceu ? {capturas: [...caps, {tipo: "raid", esp: s.raid.esp, shiny: !!s.raid.shiny, sala: codigo}]} : {})}); // o chefe só muda quando ele cai ou o jogador perde: agora acabou, o próximo será outro
     eu.resultado = {xp: ganho, nivelNovo: depois > antes ? depois : null};
     if (venceu) s.capturaGanha = "raid";
     tx.set(ref(codigo), s);
@@ -235,7 +248,8 @@ export const contabilizarResultado = (codigo, papel) => runTransaction(db, async
   const xp = xpDe(d) + ganho, nivelAntes = infoNivel(xpDe(d)).nivel, nivelDepois = infoNivel(xp).nivel;
   const vit = (d.vitorias || 0) + (venceu ? 1 : 0), reviver = venceu && vit % VITORIAS_POR_REVIVER === 0; // a cada 20 vitórias, 1 Reviver
   const alvos = s.bot && venceu ? (s.j[papel === "1" ? "2" : "1"]?.equipe || []).filter(p => p?.id && !ehLendario(p.nome)) : []; // vitória contra o bot: 1 dos 6 Pokémon dele pode ser capturado
-  const captura = alvos.length ? {tipo: "bot", esp: String(alvos[Math.floor(Math.random() * alvos.length)].id), sala: codigo} : null;
+  const alvo = alvos.length ? alvos[Math.floor(Math.random() * alvos.length)] : null; // o Pokémon sorteado leva junto o shiny que ele tinha na batalha
+  const captura = alvo ? {tipo: "bot", esp: String(alvo.id), shiny: !!alvo.shiny, sala: codigo} : null;
   tx.update(refUsuario(eu.chave), {xp, ...(captura ? {capturas: [captura]} : {}), ...(venceu ? {vitorias: vit, pocoes: (d.pocoes || 0) + 1, ...(reviver ? {revives: (d.revives || 0) + 1} : {})} : {})});
   eu.resultado = {xp: ganho, nivelNovo: nivelDepois > nivelAntes ? nivelDepois : null};
   if (captura) s.capturaGanha = "bot";
