@@ -7,12 +7,15 @@ export const IV_STATS = ["hp", "atk", "def", "spa", "spd", "spe"];
 export const IV_MIN = 16; // todo Pokémon (de jogador ou de bot) nasce com IVs de 16 a 31
 export const IV_MAX = 31;
 export const CHANCE_SHINY = 0.1; // chance de cada Pokémon novo ser shiny (só visual)
+// Lendários de missão são melhores que os da raid/torre: IVs de IV_MIN_MISSAO a 31 (os outros: 16 a 31) e 25% de chance de shiny (os outros: 10%)
+export const IV_MIN_MISSAO = 26, CHANCE_SHINY_MISSAO = 0.25;
 
-export const sortearIvs = (rng = Math.random) => Object.fromEntries(IV_STATS.map(k => [k, IV_MIN + Math.floor(rng() * (IV_MAX - IV_MIN + 1))]));
+export const sortearIvs = (rng = Math.random, min = IV_MIN) => Object.fromEntries(IV_STATS.map(k => [k, min + Math.floor(rng() * (IV_MAX - min + 1))]));
 export const somaIvs = ivs => IV_STATS.reduce((t, k) => t + (ivs?.[k] ?? 0), 0);
 export const novoIdPokemon = (rng = Math.random) => "p" + Date.now().toString(36) + Math.floor(rng() * 36 ** 8).toString(36).padStart(8, "0");
 // Registro de um Pokémon recém-obtido (captura, caixa, inicial…): IVs aleatórios e 10% de chance de shiny
 export const novoPokemon = (espId, rng = Math.random) => ({esp: String(espId), ivs: sortearIvs(rng), shiny: rng() < CHANCE_SHINY});
+export const novoPokemonMissao = (espId, rng = Math.random) => ({esp: String(espId), ivs: sortearIvs(rng, IV_MIN_MISSAO), shiny: rng() < CHANCE_SHINY_MISSAO});
 
 // Junta o catálogo com os registros da conta: devolve objetos no formato do catálogo, mas com id = id da instância
 // (assim o resto do site, que identifica o Pokémon por p.id, continua funcionando) e esp = id da espécie.

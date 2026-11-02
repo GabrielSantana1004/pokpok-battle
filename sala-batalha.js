@@ -6,7 +6,7 @@ import { ativoDe, vivos, precisaTrocar, adv, megaBloqueada, nomeCond, nomeStat, 
 import { spriteImg } from "./imagem.js";
 import { E, badge, imgN, imgAttr, persp, jogada } from "./salaestado.js";
 import { barra } from "./sala-fx.js";
-import { xpTorre, xpTorreTotal, XP_RAID } from "./nivel.js";
+import { xpTorre, xpTorreTotal, XP_RAID, PONTOS_POR_NIVEL } from "./nivel.js";
 import { RAID } from "./raid.js";
 import { golpeZ, elegivelZ } from "./zmoves.js";
 
@@ -71,7 +71,7 @@ function caixaAcao(s) {
   const ult = s.log.length ? `<p class="ultima">${esc(s.log.slice(-2).join(" "))}</p>` : "";
   if (s.fase === "fim") {
     const res = jogador ? s.j[papel].resultado : null; // XP e nível ganhos (gravados na sala quando o resultado é creditado)
-    const xpTxt = res ? ` ⭐ +${res.xp} XP${res.nivelNovo != null ? ` · 🎉 Subiu para o nível ${res.nivelNovo}! +1 ponto de treino (Meus Pokémon)` : ""}` : "";
+    const xpTxt = res ? ` ⭐ +${res.xp} XP${res.nivelNovo != null ? ` · 🎉 Subiu para o nível ${res.nivelNovo}! +${PONTOS_POR_NIVEL} pontos de treino (Meus Pokémon)` : ""}` : "";
     const premio = s.vitoriaContada ? ` 🏆 +1 vitória e +1 poção!${s.reviverGanho ? " 💫 E um Reviver (20 vitórias)!" : ""}` : "";
     if (s.raid) { // fim da raid: XP e, se o chefe caiu, a captura do lendário (sem fuga)
       const R = s.raid, ganhou = s.vencedor === papel, x = !jogador ? "" : res ? xpTxt : " ⭐ XP a receber…";

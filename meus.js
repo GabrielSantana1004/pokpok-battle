@@ -3,7 +3,7 @@ import { STATS, TIPOS, esc, nav } from "./common.js";
 import { carregarImagens } from "./imagem.js";
 import { montarTimes } from "./meus-times.js";
 import { lerStatus, lerNiveis, subirNivelPokemon } from "./usuarios.js";
-import { nivelDoPokemon } from "./nivel.js";
+import { nivelDoPokemon, PONTOS_POR_NIVEL } from "./nivel.js";
 import { REGRAS, statsFinais } from "./regras.js";
 import { renomearPokemon, APELIDO_MAX } from "./usuarios.js";
 import { usuario, criarConta, entrarConta, lerBuilds, salvarBuild, lerEscolhasHab, salvarEscolhaHab, podeEscolherShiny, definirShiny } from "./usuarios.js";
@@ -236,7 +236,7 @@ async function perfil() {
         <h3 class="pf-titulo">Estatísticas</h3>
         <ul class="pf-lista">
           ${lin("🏆", "Vitórias", st.vitorias)}
-          ${lin("🎯", pl(st.pontos, "Ponto de treino", "Pontos de treino"), st.pontos, `Cada nível da conta rende 1 ponto, que sobe 1 nível de um Pokémon (máx. ${REGRAS.nivelMax})`)}
+          ${lin("🎯", pl(st.pontos, "Ponto de treino", "Pontos de treino"), st.pontos, `Cada nível da conta rende ${PONTOS_POR_NIVEL} pontos; cada ponto sobe 1 nível de um Pokémon (máx. ${REGRAS.nivelMax})`)}
         </ul>
         <h3 class="pf-titulo">Recursos</h3>
         <ul class="pf-lista">

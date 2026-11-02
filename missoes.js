@@ -3,7 +3,7 @@ import { listar } from "./firebase.js";
 import { esc, nav } from "./common.js";
 import { usuario, lerPokemons, lerMissoes, resgatarMissao } from "./usuarios.js";
 import { carregarImagens } from "./imagem.js";
-import { somaIvs, IV_STATS, IV_MAX } from "./pokemons.js";
+import { somaIvs, IV_STATS, IV_MAX, IV_MIN_MISSAO, CHANCE_SHINY_MISSAO } from "./pokemons.js";
 import { MISSOES, progresso } from "./missoes-dados.js";
 nav();
 const $ = id => document.getElementById(id), u = usuario();
@@ -33,6 +33,7 @@ function desenhar() {
   const feitas = MISSOES.filter(m => resgatadas[m.id]).length;
   $("missoes").innerHTML = `<div class="tr-bloco"><h2>📜 Missões <small>${feitas}/${MISSOES.length} resgatadas</small></h2>
     <p class="missao-intro">Estes lendários <b>não aparecem nas raids</b>: o único jeito de consegui-los é completar a coleção de cada missão. Cada missão só pode ser resgatada uma vez.</p>
+    <p class="missao-bonus">🌟 <b>Lendários de missão são melhores:</b> nascem com IVs de ${IV_MIN_MISSAO} a ${IV_MAX} em todos os atributos e têm <b>${Math.round(CHANCE_SHINY_MISSAO * 100)}% de chance de ser shiny</b>.</p>
     ${msg ? `<p class="captura-res">${msg}</p>` : ""}
     <h3 class="missoes-sub">🌟 Coleções especiais</h3><div class="missoes-grade">${MISSOES.filter(m => m.grupo !== "tipos").map(cartao).join("")}</div>
     <h3 class="missoes-sub">🎨 Mestre dos tipos <small>um exemplar de cada Pokémon do tipo, sem lendários e míticos</small></h3><div class="missoes-grade">${MISSOES.filter(m => m.grupo === "tipos").map(cartao).join("")}</div></div>`;

@@ -2,8 +2,8 @@
 // Documento: { nick, senha (hash), pokemons: { <id da instância>: {esp, ivs, shiny} }, builds: { <id da instância>: ["Golpe 1", ...até 4] } }
 // Atenção: com as regras do Firestore abertas isto identifica quem joga, mas não é segurança de verdade.
 import "./firebase.js"; // inicializa o app com o seu firebaseConfig
-import { novoPokemon, novoIdPokemon, shinyPorInstancia, shinyPorEspecie, tentativaCaptura, CHANCE_SHINY } from "./pokemons.js";
-import { infoNivel, xpDe, nivelDoPokemon, pontosLivres, caixasLivres } from "./nivel.js";
+import { novoPokemon, novoPokemonMissao, novoIdPokemon, shinyPorInstancia, shinyPorEspecie, tentativaCaptura, CHANCE_SHINY } from "./pokemons.js";
+import { infoNivel, xpDe, nivelDoPokemon, pontosLivres, caixasLivres, PONTOS_POR_NIVEL } from "./nivel.js";
 import { sortearCaixa, itemPorId, copiasLivres } from "./itens.js";
 import { REGRAS } from "./regras.js";
 const REGRAS_NIVEL_MAX = REGRAS.nivelMax;
@@ -133,7 +133,7 @@ export const resgatarMissao = (chave, missaoId, espId, exigidos) => escrever(asy
   const tem = new Set(Object.values(d.pokemons || {}).map(r => String(r.esp)));
   const faltam = exigidos.filter(e => !tem.has(String(e))).length;
   if (faltam) throw new Error(`Ainda ${faltam === 1 ? "falta 1 Pokémon" : `faltam ${faltam} Pokémon`} para completar esta missão.`);
-  const id = novoIdPokemon(), reg = novoPokemon(espId);
+  const id = novoIdPokemon(), reg = novoPokemonMissao(espId); // lendário de missão: IVs altos e mais chance de shiny que os da raid
   tx.update(ref(chave), {[`pokemons.${id}`]: reg, [`missoes.${missaoId}`]: true});
   return {id, ...reg};
 });
@@ -229,7 +229,7 @@ export const subirNivelPokemon = (chave, pokemonId) => escrever(async tx => {
   if (!us.exists()) throw new Error("Conta não encontrada. Entre de novo.");
   const d = us.data(), atual = nivelDoPokemon(d.niveis, pokemonId);
   if (atual >= REGRAS_NIVEL_MAX) throw new Error(`Este Pokémon já está no nível máximo (${REGRAS_NIVEL_MAX}).`);
-  if (pontosLivres(d) < 1) throw new Error("Você não tem pontos de treino: cada nível da conta rende 1 ponto.");
+  if (pontosLivres(d) < 1) throw new Error(`Você não tem pontos de treino: cada nível da conta rende ${PONTOS_POR_NIVEL} pontos.`);
   const niveis = {...(d.niveis || {}), [pokemonId]: atual + 1};
   tx.update(ref(chave), {niveis});
   return niveis;

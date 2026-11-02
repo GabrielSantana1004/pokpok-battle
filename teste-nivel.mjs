@@ -10,16 +10,17 @@ assert.equal(xpDe({vitorias: 7}), 140); assert.equal(xpDe({vitorias: 7, xp: 30})
 // sequência de ganhos: 5 vitórias = 100 XP = nível 1; 1 derrota = +5
 let xp = 0; for (let i = 0; i < 5; i++) xp += 20; assert.equal(infoNivel(xp).nivel, 1); xp += 5; assert.equal(infoNivel(xp).noNivel, 5);
 // ----- pontos de treino e nível dos Pokémon -----
-import { nivelDoPokemon, pontosGastos, pontosLivres } from "./nivel.js";
+import { nivelDoPokemon, pontosGastos, pontosLivres, PONTOS_POR_NIVEL } from "./nivel.js";
 import { statsFinais, REGRAS } from "./regras.js";
 assert.equal(nivelDoPokemon({}, "x"), 50); assert.equal(nivelDoPokemon({x: 77}, "x"), 77); assert.equal(nivelDoPokemon({x: 250}, "x"), 100); assert.equal(nivelDoPokemon({x: 3}, "x"), 50);
 assert.equal(pontosGastos({a: 53, b: 50, c: 51}), 4); assert.equal(pontosGastos(undefined), 0);
 assert.equal(pontosLivres({xp: 0}), 0);                       // nível 0 da conta: nenhum ponto
-assert.equal(pontosLivres({xp: 100}), 1);                     // nível 1: 1 ponto
-assert.equal(pontosLivres({xp: 364}), 3);                     // nível 3: 3 pontos
-assert.equal(pontosLivres({xp: 364, niveis: {a: 52}}), 1);    // 3 pontos - 2 gastos
-assert.equal(pontosLivres({xp: 100, niveis: {a: 60}}), 0);    // nunca negativo
-assert.equal(pontosLivres({vitorias: 5}), 1);                 // conta antiga: 5 vitórias = 100 XP = nível 1
+assert.equal(PONTOS_POR_NIVEL, 6);
+assert.equal(pontosLivres({xp: 100}), 6);                     // nível 1: 6 pontos
+assert.equal(pontosLivres({xp: 364}), 18);                    // nível 3: 18 pontos
+assert.equal(pontosLivres({xp: 364, niveis: {a: 52}}), 16);   // 18 pontos - 2 gastos
+assert.equal(pontosLivres({xp: 100, niveis: {a: 60}}), 0);    // 6 - 10 gastos: nunca negativo
+assert.equal(pontosLivres({vitorias: 5}), 6);                 // conta antiga: 5 vitórias = 100 XP = nível 1 = 6 pontos
 // atributos crescem com o nível (fórmula oficial): Charizard base 78/84/78/109/85/100
 const base = {hp: 78, atk: 84, def: 78, spa: 109, spd: 85, spe: 100};
 const a50 = statsFinais(base), a100 = statsFinais(base, {...REGRAS, nivel: 100});

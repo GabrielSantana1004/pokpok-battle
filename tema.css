@@ -1107,3 +1107,5 @@ body:not(.em-batalha) section#missoes { padding: 0; border: 0; background: none;
 .rc-info small { font-size: .78rem; color: #4a5278; font-weight: 700; }
 .rc-info .tipo { margin-right: 3px; }
 .rc-nota { font-weight: 600; font-style: italic; }
+
+.missao-bonus { margin: 0 0 12px; padding: 8px 12px; border-radius: 12px; background: linear-gradient(#fff4d6, #ffe9b0); border: 2px solid #f0c419; color: #5a4300; font-size: .9rem; }
